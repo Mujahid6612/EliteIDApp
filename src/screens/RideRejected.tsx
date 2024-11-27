@@ -1,0 +1,82 @@
+import HeaderLayout from "../components/HeaderLayout"
+import JobdetailsHeader from "../components/JobdetailsHeader"
+import ThemedText from "../components/ThemedText";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import { useEffect, useState } from "react";
+import { persistor } from "../store/store";
+import { useDispatch } from "react-redux";
+import { setAuthState } from "../store/authSlice";
+import Unauthorized from "./Unauthorized";
+import { useLastRequestTime } from "../hooks/useLastRequestTime";
+
+
+type JobApiResponse = {
+  JHeader?: { Message: string };
+  JData?: any[]; 
+};
+
+const RideRejected = () => {
+
+  const dispatch = useDispatch();
+  const lastRequestTime = useLastRequestTime();
+  const {  jobData } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const [localJobData, setLocalJobData] = useState<JobApiResponse | null>(null);
+
+  useEffect(() => {
+    // Clear the persisted state when the component mounts
+    if (jobData && jobData?.JHeader) {
+      setLocalJobData(jobData);
+      if (
+        jobData?.JHeader?.Message == "Please keep this window open till you receive your next job from the dispatcher.") {
+        const clearPersistedState = () => {
+          console.log("Clearing persisted state...");
+          persistor.purge();
+        };
+
+        clearPersistedState();
+        dispatch(setAuthState(null))
+        //@ts-ignore
+         //dispatch(setCurrentView(null));  
+         //cleanup on unmount
+        return () => {
+          console.log("Component unmounted, clearing persisted state...");
+          persistor.purge();
+        };
+      }
+    }
+  }, []);
+  
+  if (!localJobData || !localJobData?.JData || !localJobData?.JHeader) {
+    return <Unauthorized message={jobData?.JHeader?.Message} />;
+  }
+
+  const jobDetails = localJobData?.JData?.[0];
+  const JobOffer = jobDetails[0];
+  const jobIdFromRes = jobDetails[1];
+  const jobNumber = jobDetails[2] || "";
+
+
+  return (
+    <>
+        <HeaderLayout screenName={String(JobOffer)} />
+          <JobdetailsHeader
+            JobidPassed={String(jobIdFromRes)}
+            jobNumber={String(jobNumber)}
+          />
+      {lastRequestTime ? (
+        <p className="fs-sm">Refresh: {lastRequestTime}</p>
+      ) : (
+        <p className="fs-sm">Refresh time : Loading...</p>
+      )}
+        <div className="d-flex-cen " style={{height: "80vh", flexDirection: "column", gap: "30px"}}>
+        <ThemedText themeText="The ride has been rejected. You may close this window now." classPassed="centertext" />
+        <div className="divider"></div>
+        </div>
+    </>
+  )
+}
+
+export default RideRejected
