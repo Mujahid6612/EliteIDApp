@@ -60,7 +60,7 @@ const Popup: React.FC<PopupProps> = ({ triggerOnLoad = false, popTitle, popUpTex
             <div className={`${secondButtonText && "d-flex-cen fl-gap"}`}>
             <ButtonsComponent buttonWidth="110px" popupButtonRedClass={popupButtonRedClass}  popVariantButton={popVariantButton} buttonText={PopUpButtonText} functionpassed={functionpassed || togglePopup}/> 
             {secondButtonText &&
-            <ButtonsComponent buttonWidth="110px"  buttonText={secondButtonText}  functionpassed={togglePopup}/>
+            <ButtonsComponent buttonWidth="110px"  buttonText={secondButtonText} functionpassed={togglePopup}/>
               }
               </div>
           </div>

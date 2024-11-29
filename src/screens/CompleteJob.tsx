@@ -105,7 +105,7 @@ const CompleteJob = () => {
     }
   };
 
-  if(jobData?.JHeader?.Message =="Sorry, you cannot view this job. Please ensure you are authorized and accessing it while the job is active. You may close this window now."){
+  if(jobData?.JHeader?.ActionCode == 1){
     return <Unauthorized message={jobData?.JHeader.Message} />
   }
   // Handle the case where no job data is found [This Part can be reused in all components if we make a helper function] 
@@ -148,7 +148,7 @@ const CompleteJob = () => {
       ) : (
         <p className="fs-sm">Refresh time : Loading...</p>
       )}
-      <UploadImage />
+      {/* <UploadImage /> */}
       {!showValidationPopup && (
         <Popup
           triggerOnLoad={false}

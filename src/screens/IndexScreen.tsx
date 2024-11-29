@@ -26,7 +26,8 @@ const IndexScreen = () => {
   let currentViwe = jobData?.JData?.[0]?.[0]
 
 
-  useAuthRefresh();
+  let responseFromLog = useAuthRefresh();
+  console.log("responseFromLog", responseFromLog);
 
   // Check the location permission status on mount
   useEffect(() => {
@@ -86,18 +87,25 @@ const IndexScreen = () => {
     return <LocationRequest permissionBlockedRes={false} onRequestLocation={requestLocation} />;
   }
 
-  if(jobData?.JHeader?.Message =="Sorry, you cannot view this job. Please ensure you are authorized and accessing it while the job is active. You may close this window now."){
+  if(jobData?.JHeader?.ActionCode == 1) {
     return <Unauthorized message={jobData?.JHeader.Message} />
+  }
+  
+  //@ts-ignore
+  if(responseFromLog && responseFromLog?.JHeader?.ActionCode == 1) {
+    //return <Unauthorized message={responseFromLog?.JHeader.Message} />
   }
 
   if (!isAuthenticated || jobData?.JHeader == null) {
     return <Spinner functionPassed={fetchJobData} />;
   }
+  console.log("currentRoute", currentRoute);
   const getComponentForStatus = (status: string) => {
     switch (status) {
       case "/": return <JobOffer />;
       case "Job Offer": return <JobOffer />;
-      case "En-route": return <EnRoute />;
+      //case "En-route": return <EnRoute />;  /// This was changed thats why it was stuck on same screen and popup was not closing
+      case "Job Accepted": return <EnRoute />;
       case "On-scene": return <OnScene />;
       case "Load": return <Load />;
       case "Complete Job": return <CompleteJob />;
@@ -115,3 +123,5 @@ export default IndexScreen;
 
 
 // || jobData?.JHeader == null
+
+

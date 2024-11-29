@@ -50,7 +50,7 @@ const Load = () => {
   };
   
 
-  if(jobData?.JHeader?.Message =="Sorry, you cannot view this job. Please ensure you are authorized and accessing it while the job is active. You may close this window now."){
+  if(jobData?.JHeader?.ActionCode == 1){
     return <Unauthorized message={jobData?.JHeader.Message} />
   }
 

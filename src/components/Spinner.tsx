@@ -48,3 +48,36 @@ const Spinner: React.FC<SpinnerProps> = ({
 };
 
 export default Spinner;
+
+
+/*
+interface SpinnerProps {
+  size?: string;
+  color?: string;
+  functionPassed?: (...args: any[]) => void;
+  retryInterval?: number;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({
+  size = "50px",
+  color = "#000",
+  functionPassed,
+  retryInterval = 3000,
+}) => {
+  const [attempts, setAttempts] = useState(0);
+
+  useEffect(() => {
+    if (!functionPassed) return;
+    const interval = setInterval(() => {
+      functionPassed();
+      setAttempts((prevAttempts) => prevAttempts + 1);
+      if (attempts >= 3) {
+        clearInterval(interval);
+        throw new Error("Failed after three attempts");
+      }
+    }, retryInterval);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, [functionPassed, retryInterval, attempts]);
+  */

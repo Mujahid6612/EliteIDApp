@@ -40,7 +40,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
     }
   }
   const inpayload = {
-    "ActionCode": "S.ID.ACTION",
+    "ActionCode": "S.ID.ACTION.P",
     "ViewName": viewName,
     "ClientIP": clientIP, 
     "JsonReq": {
@@ -52,7 +52,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
         "DeviceInfo": userAgent, //NEED TO BE DYNAMIC
         "DeviceID": "ABCDEF12-34567890ABCDEF12", //NEED TO BE DYNAMIC RANDION ID 
         "ViewName": viewName, 
-        "ActionCode": "S.ID.ACTION",   
+        "ActionCode": "S.ID.ACTION.P",   
         "ClientVersion": "1.0.0",
         "APIVersion": "1.0.0",
         "APILogin": "user@webapis.com",
@@ -73,7 +73,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
     "Notes": "Test Notes ..."
   };
   const inpayloadWithLocation = {
-    "ActionCode": "S.ID.ACTION",
+    "ActionCode": "S.ID.ACTION.P",
     "ViewName": viewName,
     "ClientIP": clientIP, 
     "JsonReq": {
@@ -85,7 +85,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
         "DeviceInfo": userAgent, //NEED TO BE DYNAMIC
         "DeviceID": "ABCDEF12-34567890ABCDEF12", //NEED TO BE DYNAMIC RANDION ID 
         "ViewName": viewName, 
-        "ActionCode": "S.ID.ACTION",   
+        "ActionCode": "S.ID.ACTION.P",   
         "ClientVersion": "1.0.0",
         "APIVersion": "1.0.0",
         "APILogin": "user@webapis.com",
@@ -100,7 +100,10 @@ export const authenticate = async function ({token, actionType, viewName,   drop
       "JMetaData": {},
       "JData": {
         "p_ACTION": actionType,
-        "p_AUTH_TOKEN": token
+        "p_AUTH_TOKEN": token,
+        "p_PARAM_1": cityStateSer,
+        "p_PARAM_2": dropOfLocationSer,
+        "p_PARAM_3": passegerNameInputSer
       }
     },
     "Notes": "Test Notes ..."
@@ -116,7 +119,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
 
   // Convert the object to a JSON string with proper escaping
   const finalPayload =  JSON.stringify(actualPayload);
-  //console.log('Payload:++++++++++++++++++++++++++++++++++++++++++++++++++++', finalPayload);
+  console.log('Payload:++++++++++++++++++++++++++++++++++++++++++++++++++++', finalPayload);
   try {
     const response =  await axios.post('https://idapi.eliteny.com/Web/DBAPI/ProcessRequest', JSON.stringify(finalPayload), {
       headers: {
@@ -128,7 +131,8 @@ export const authenticate = async function ({token, actionType, viewName,   drop
     if(response.data) { 
     responseParsed = JSON.parse(response.data);
     }
-    //console.log('Response:++++++++++++++++++++++++++++++++++++++++++++++++++++', responseParsed.JHeader?.ActionCode == 0);
+    console.log('Response:++++++++++++++++++++++++++++++++++++++++++++++++++++', responseParsed);
+    console.log('Response:++++++++++++++++++++++++++++++++++++++++++++++++++++', responseParsed.JHeader?.ActionCode == 0);
     if (response.data) {
       return responseParsed;
     } 

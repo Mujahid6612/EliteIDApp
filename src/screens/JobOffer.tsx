@@ -55,6 +55,7 @@ const JobOffer: React.FC = () => {
       });
       dispatch(setAuthState(res));
       let currentViwe = res.JData?.[0]?.[0];
+      console.log("currentViwe", currentViwe);
       dispatch(setCurrentView(currentViwe));
     } catch (error) {
       console.error("Error fetching job data", error);
@@ -90,7 +91,7 @@ const JobOffer: React.FC = () => {
     );
   };
 
-  if(jobData?.JHeader?.Message =="Sorry, you cannot view this job. Please ensure you are authorized and accessing it while the job is active. You may close this window now."){
+  if(jobData?.JHeader?.ActionCode == 1){
     return <Unauthorized message={jobData?.JHeader.Message} />
   }
 
