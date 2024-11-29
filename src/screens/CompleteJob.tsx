@@ -8,7 +8,7 @@ import {
 } from "../components/LocationDetails";
 import Popup from "../components/Popup";
 import { useParams } from "react-router-dom";
-import UploadImage from "../components/UploadImage";
+//import UploadImage from "../components/UploadImage";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../services/apiServices";
