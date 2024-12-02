@@ -1,19 +1,20 @@
-import HeaderLayout from "../components/HeaderLayout"
-import JobdetailsHeader from "../components/JobdetailsHeader"
-import FormatDateCom from "../components/FormatDateCom"
-import {PassengerInfo, LocationDetails} from "../components/LocationDetails"
-import Spinner from "../components/Spinner"
-//import ButtonsComponent from "../components/ButtonsComponent"
-import Popup from "../components/Popup"
-import {  useParams } from "react-router-dom";
+import HeaderLayout from "../components/HeaderLayout";
+import JobdetailsHeader from "../components/JobdetailsHeader";
+import FormatDateCom from "../components/FormatDateCom";
+import { PassengerInfo, LocationDetails } from "../components/LocationDetails";
+import Spinner from "../components/Spinner";
+// import ButtonsComponent from "../components/ButtonsComponent";
+import Popup from "../components/Popup";
+import { useParams } from "react-router-dom";
 import { useState } from "react";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
-import {authenticate } from "../services/apiServices";
+import { authenticate } from "../services/apiServices";
 import { setAuthState } from "../store/authSlice";
 import { RootState } from "../store/store";
 import { setCurrentView } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
+import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
 
 const Load = () => {
   const dispatch = useDispatch();
@@ -21,106 +22,113 @@ const Load = () => {
   const [isStopAdded, setIsStopAdded] = useState(false);
   const lastRequestTime = useLastRequestTime();
   let action = isStopAdded ? "ADD_STOP" : "END";
-  
+
   const handleAddStop = () => {
     setIsStopAdded(true);
-  }
-
-  const { jobData } = useSelector(
-    (state: RootState) => state.auth
-  );
-
-  const handleAllowLocation = async(action: string) => {
-    if (!jobId) return;
-      try {
-        const res = await authenticate({token: jobId, actionType: action, viewName: "LOAD"});
-        dispatch(setAuthState(res))
-        let currentView = Array.isArray(res?.JData) &&
-                  Array.isArray(res.JData[0]) &&
-                  res.JData[0][0] !== undefined
-                  ? res.JData[0][0]
-                  : "On-scene";
-        setIsStopAdded(false);
-        if (currentView) {
-        dispatch(setCurrentView(currentView));
-       }
-      } catch (error) {
-        console.error("Error fetching job data", error);
-      }
   };
-  
 
-  if(jobData?.JHeader?.ActionCode == 1){
-    return <Unauthorized message={jobData?.JHeader.Message} />
+  const { jobData } = useSelector((state: RootState) => state.auth);
+
+  const handleAllowLocation = async (action: string) => {
+    if (!jobId) return;
+    try {
+      const res = await authenticate({
+        token: jobId,
+        actionType: action,
+        viewName: "LOAD",
+      });
+      dispatch(setAuthState(res));
+      let currentView =
+        Array.isArray(res?.JData) &&
+        Array.isArray(res.JData[0]) &&
+        res.JData[0][0] !== undefined
+          ? res.JData[0][0]
+          : "On-scene";
+      setIsStopAdded(false);
+      if (currentView) {
+        dispatch(setCurrentView(currentView));
+      }
+    } catch (error) {
+      console.error("Error fetching job data", error);
+    }
+  };
+
+  if (jobData?.JHeader?.ActionCode === 1) {
+    return <Unauthorized message={jobData?.JHeader.Message} />;
   }
 
   if (!jobData || !jobData.JData || !jobData.JHeader) {
     return <Spinner functionPassed={handleAllowLocation} />;
   }
-   
-  const jobDetails = jobData.JData?.[0]
-  const headingsData = jobData.JMetaData?.Headings;
-  const JobOffer = jobDetails[0];
-  const jobIdFromRes = jobDetails[1];
-  const jobNumber = jobDetails[2] || "";
-  const reservationDateTime = jobDetails[3];
-  const pickupAddress = jobDetails[4];
-  const dropoffAddress = jobDetails[5];
-  const passengerName = jobDetails[6];
-  const passengerPhone = jobDetails[7];
-  const passerngerNameHeading = headingsData[6][1];
-  const passengerPhoneHeading = headingsData[7][1];
-  const showButtonAccept = headingsData[13][1];
-  const showButtonReject = headingsData[14][1];
+
+  // Use getJobDetails to extract all job-related data
+  const {
+    jobOffer,
+    jobIdFromRes,
+    jobNumber,
+    reservationDateTime,
+    pickupAddress,
+    dropoffAddress,
+    passengerName,
+    passengerPhone,
+    passengerNameHeading,
+    passengerPhoneHeading,
+    showButtonEnd,
+    showButtonAddStop,
+    showButtonStart
+  } = getJobDetails(jobData);
 
   return (
     <>
-        <HeaderLayout screenName={String(JobOffer)} />
-          <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
-        <div className="ml-10">
+      <HeaderLayout screenName={String(jobOffer)} />
+      <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
+      <div className="ml-10">
         <FormatDateCom datePassed={String(reservationDateTime)} />
-        </div> 
-        <LocationDetails pickupAddress={String(pickupAddress)} dropoffAddress={String(dropoffAddress)}/>
-        <PassengerInfo  passengerName={String(passengerName)} passengerPhone={String(passengerPhone)} passerngerNameHeading={passerngerNameHeading} passengerPhoneHeading={passengerPhoneHeading} />
-        {lastRequestTime ? (
+      </div>
+      <LocationDetails
+        pickupAddress={String(pickupAddress)}
+        dropoffAddress={String(dropoffAddress)}
+      />
+      <PassengerInfo
+        passengerName={String(passengerName)}
+        passengerPhone={String(passengerPhone)}
+        passerngerNameHeading={passengerNameHeading}
+        passengerPhoneHeading={passengerPhoneHeading}
+      />
+      {lastRequestTime ? (
         <p className="fs-sm">Refresh: {lastRequestTime}</p>
       ) : (
-        <p className="fs-sm">Refresh time : Loading...</p>
+        <p className="fs-sm">Refresh time: Loading...</p>
       )}
-        {!isStopAdded &&
-       /* <ButtonsComponent buttonText="ADD STOP" buttonVariant="primary" functionpassed={handleAddStop}/> */
+      {!isStopAdded && (
         <Popup
-            triggerOnLoad={false}
-            popTitle="Confirmation"
-            PopUpButtonOpenText={showButtonAccept}
-            popUpText="Are you sure ?"
-            PopUpButtonText="Yes"
-            popVariantButton="secondary"
-            secondButtonText="No"
-            popupButtonRedClass="secondaryPopup"
-            functionpassed={handleAddStop}
-          />
-       } 
-        <div className="mb-20"></div>
-      { /*<ButtonsComponent buttonText={isStopAdded ? "Click to Start Ride" : "Click to End Ride"} buttonVariant="primary" functionpassed={handleAllowLocation(action)}/> */}
-      <div style={{textAlign: "center"}}>
-       {/*<button style={{width: "70%"}} className="button primary" onClick={() => handleAllowLocation(action)}>{ isStopAdded ? "CLICK TO START RIDE" : showButtonReject}</button> */}
-       <Popup
-        triggerOnLoad={false}
-        popTitle="Confirmation"
-        PopUpButtonOpenText={isStopAdded ? "CLICK TO START RIDE" :showButtonReject}
-        popUpText="Are you sure ?"
-        PopUpButtonText="Yes"
-        popVariantButton="primary"
-        secondButtonText="No"
-        popupButtonRedClass="secondaryPopup"
-        functionpassed={() =>
-          handleAllowLocation(action)
-        }
-      />
-       </div>
+          triggerOnLoad={false}
+          popTitle="Confirmation"
+          PopUpButtonOpenText={showButtonAddStop}
+          popUpText="Are you sure?"
+          PopUpButtonText="Yes"
+          popVariantButton="secondary"
+          secondButtonText="No"
+          popupButtonRedClass="secondaryPopup"
+          functionpassed={handleAddStop}
+        />
+      )}
+      <div className="mb-20"></div>
+      <div style={{ textAlign: "center" }}>
+        <Popup
+          triggerOnLoad={false}
+          popTitle="Confirmation"
+          PopUpButtonOpenText={isStopAdded ? showButtonStart : showButtonEnd}
+          popUpText="Are you sure?"
+          PopUpButtonText="Yes"
+          popVariantButton="primary"
+          secondButtonText="No"
+          popupButtonRedClass="secondaryPopup"
+          functionpassed={() => handleAllowLocation(action)}
+        />
+      </div>
     </>
-  )
-}
+  );
+};
 
-export default Load
+export default Load;

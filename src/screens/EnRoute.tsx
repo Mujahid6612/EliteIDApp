@@ -1,93 +1,94 @@
-import HeaderLayout from "../components/HeaderLayout"
-
-import JobdetailsHeader from "../components/JobdetailsHeader"
-import FormatDateCom from "../components/FormatDateCom"
-import {PassengerInfo, LocationDetails} from "../components/LocationDetails"
-//import ButtonsComponent from "../components/ButtonsComponent"
-import Spinner from "../components/Spinner"
-import {  useParams } from "react-router-dom";
+import HeaderLayout from "../components/HeaderLayout";
+import JobdetailsHeader from "../components/JobdetailsHeader";
+import FormatDateCom from "../components/FormatDateCom";
+import { PassengerInfo, LocationDetails } from "../components/LocationDetails";
+// import ButtonsComponent from "../components/ButtonsComponent";
+import Spinner from "../components/Spinner";
+import { useParams } from "react-router-dom";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
-import {authenticate } from "../services/apiServices";
+import { authenticate } from "../services/apiServices";
 import { setAuthState } from "../store/authSlice";
 import { RootState } from "../store/store";
 import { setCurrentView } from "../store/currentViewSlice";
-import Popup from "../components/Popup"
+import Popup from "../components/Popup";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
-
+import { getJobDetails } from "../utils/JobDataVal"; // Assuming you import this utility
 
 const EnRoute = () => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
   const lastRequestTime = useLastRequestTime();
-  const { jobData } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { jobData } = useSelector((state: RootState) => state.auth);
 
-  const handleAllowLocation = async() => {
+  const handleAllowLocation = async () => {
     if (!jobId) return;
-      try {
-        const res = await authenticate({token: jobId, actionType: 'ARRIVE', viewName: 'ARRIVE'});
-        dispatch(setAuthState(res))
-        let currentViwe = res.JData?.[0]?.[0];
-        dispatch(setCurrentView(currentViwe));
-      } catch (error) {
-        console.error("Error fetching job data", error);
-      }
+    try {
+      const res = await authenticate({ token: jobId, actionType: 'ARRIVE', viewName: 'ARRIVE' });
+      dispatch(setAuthState(res));
+      let currentView = res.JData?.[0]?.[0];
+      dispatch(setCurrentView(currentView));
+    } catch (error) {
+      console.error("Error fetching job data", error);
+    }
   };
 
-  if(jobData?.JHeader?.ActionCode == 1){
-    return <Unauthorized message={jobData?.JHeader.Message} />
-  }
+  if (jobData?.JHeader?.ActionCode === 1) {
+    return <Unauthorized message={jobData?.JHeader.Message} />;
+  }  
 
   if (!jobData || !jobData.JData || !jobData.JHeader) {
     return <Spinner functionPassed={handleAllowLocation} />;
   }
-   
-  const jobDetails = jobData.JData?.[0]
-  const headingsData = jobData.JMetaData?.Headings;
-  const JobOffer = jobDetails[0];
-  const jobIdFromRes = jobDetails[1];
-  const jobNumber = jobDetails[2] || "";
-  const reservationDateTime = jobDetails[3];
-  const pickupAddress = jobDetails[4];
-  const dropoffAddress = jobDetails[5];
-  const passengerName = jobDetails[6];
-  const passengerPhone = jobDetails[7];
-  const passerngerNameHeading = headingsData[6][1];
-  const passengerPhoneHeading = headingsData[7][1];
-  const showButtonAccept = headingsData[11][1];
-  //const showButtonReject = headingsData[9][1];
+
+  // Use getJobDetails to extract all job-related data
+  const {
+    jobOffer,
+    jobIdFromRes,
+    jobNumber,
+    reservationDateTime,
+    pickupAddress,
+    dropoffAddress,
+    passengerName,
+    passengerPhone,
+    passengerNameHeading,
+    passengerPhoneHeading,
+    showButtonArrive,
+  } = getJobDetails(jobData);
 
   return (
     <>
-        <HeaderLayout screenName={String(JobOffer)} />
-          <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
-        <div className="ml-10">
+      <HeaderLayout screenName={String(jobOffer)} />
+      <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
+      <div className="ml-10">
         <FormatDateCom datePassed={String(reservationDateTime)} />
-        </div> 
-        <LocationDetails pickupAddress={String(pickupAddress)} dropoffAddress={String(dropoffAddress)}/>
-          <PassengerInfo  passengerName={String(passengerName)} passengerPhone={String(passengerPhone)} passerngerNameHeading={passerngerNameHeading} passengerPhoneHeading={passengerPhoneHeading} />
-          {lastRequestTime ? (
+      </div>
+      <LocationDetails pickupAddress={String(pickupAddress)} dropoffAddress={String(dropoffAddress)} />
+      <PassengerInfo
+        passengerName={String(passengerName)}
+        passengerPhone={String(passengerPhone)}
+        passerngerNameHeading={passengerNameHeading}
+        passengerPhoneHeading={passengerPhoneHeading}
+      />
+      {lastRequestTime ? (
         <p className="fs-sm">Refresh: {lastRequestTime}</p>
       ) : (
-        <p className="fs-sm">Refresh time : Loading...</p>
+        <p className="fs-sm">Refresh time: Loading...</p>
       )}
-     {/*  <ButtonsComponent buttonText="Click to Arrive" buttonVariant="primary" functionpassed={handleAllowLocation}/>  */}
-       <Popup
-            triggerOnLoad={false}
-            popTitle="Confirmation"
-            PopUpButtonOpenText={showButtonAccept}
-            popUpText="Are you sure ?"
-            PopUpButtonText="Yes"
-            popVariantButton="primary"
-            secondButtonText="No"
-            popupButtonRedClass="secondaryPopup"
-            functionpassed={handleAllowLocation}
-          />
+      {/* <ButtonsComponent buttonText="Click to Arrive" buttonVariant="primary" functionPassed={handleAllowLocation} /> */}
+      <Popup
+        triggerOnLoad={false}
+        popTitle="Confirmation"
+        PopUpButtonOpenText={showButtonArrive}
+        popUpText="Are you sure?"
+        PopUpButtonText="Yes"
+        popVariantButton="primary"
+        secondButtonText="No"
+        popupButtonRedClass="secondaryPopup"
+        functionpassed={handleAllowLocation}
+      />
     </>
-  )
-}
+  );
+};
 
-
-export default EnRoute
+export default EnRoute;

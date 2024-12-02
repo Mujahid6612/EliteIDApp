@@ -6,7 +6,6 @@ import ThemedText from "../components/ThemedText";
 import JobdetailsHeader from "../components/JobdetailsHeader";
 import FormatDateCom from "../components/FormatDateCom";
 import { PassengerInfo, LocationDetails } from "../components/LocationDetails";
-//import ButtonsComponent from "../components/ButtonsComponent";
 import Logo from "../components/Logo";
 import MainMessage from "../components/MainMessage";
 import ThemedList from "../components/ThemedList";
@@ -16,12 +15,10 @@ import { authenticate } from "../services/apiServices";
 import { setAuthState } from "../store/authSlice";
 import { RootState } from "../store/store";
 import { setCurrentView } from "../store/currentViewSlice";
-//import { SwipeableButton } from "react-swipeable-button";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
+import { getJobDetails } from "../utils/JobDataVal";
 
-
-[];
 const JobOffer: React.FC = () => {
   const dispatch = useDispatch();
   const lastRequestTime = useLastRequestTime();
@@ -70,8 +67,8 @@ const JobOffer: React.FC = () => {
         actionType: "REJECT",
         viewName: "OFFER",
       });
-      //dispatch(setAuthState(res))
       let currentViwe = res.JData?.[0]?.[0];
+      dispatch(setAuthState(res));
       dispatch(setCurrentView(currentViwe));
     } catch (error) {
       console.error("Error fetching job data", error);
@@ -95,27 +92,26 @@ const JobOffer: React.FC = () => {
     return <Unauthorized message={jobData?.JHeader.Message} />
   }
 
-  // Handle the case where no job data is found [This Part can be reused in all components if we make a helper function] 
+  // Handle the case where no job data is found
   if (!jobData || !jobData.JData || !jobData.JHeader) {
-    return <Spinner functionPassed={handleAllowLocation} />;  
+    return <Spinner functionPassed={handleAllowLocation} />;
   }
 
-  const jobDetails = jobData.JData?.[0];
-  const headingsData = jobData.JMetaData?.Headings;
-  const JobOffer = jobDetails[0];
-  const jobIdFromRes = jobDetails[1];
-  const jobNumber = jobDetails[2] || "";
-  const reservationDateTime = jobDetails[3];
-  const pickupAddress = jobDetails[4];
-  const dropoffAddress = jobDetails[5];
-  const passengerName = jobDetails[6];
-  const passengerPhone = jobDetails[7];
-  const passerngerNameHeading = headingsData[6][1];
-  const passengerPhoneHeading = headingsData[7][1];
-  const showButtonAccept = headingsData[8][1];
-  const showButtonReject = headingsData[9][1];
-
-    //  [The above Part can be reused in all components if we make a helper function] 
+  // Fetch job details using the utility function to avoid hard-coded indexes
+  const {
+    jobOffer,
+    jobIdFromRes,
+    jobNumber,
+    reservationDateTime,
+    pickupAddress,
+    dropoffAddress,
+    passengerName,
+    passengerPhone,
+    passengerNameHeading,
+    passengerPhoneHeading,
+    showButtonAccept,
+    showButtonReject,
+  } = getJobDetails(jobData);
 
   if (permissionBlockedRes) {
     return (
@@ -126,8 +122,14 @@ const JobOffer: React.FC = () => {
           classPassed="lefttext"
           themeText="Sorry. You blocked the location permission. Please follow the steps below to remove the block. Otherwise, you won't be able to use this app."
         />
-         <ThemedList list={["Go to settings.", "Locate this app.", "Enable location access."]} />
-         <Popup
+        <ThemedList
+          list={[
+            "Go to settings.",
+            "Locate this app.",
+            "Enable location access.",
+          ]}
+        />
+        <Popup
           triggerOnLoad={true}
           popTitle="Welcome to Driver App"
           popUpText="Thanks. Please keep this app open at all times to get jobs notification. Dispatcher might sign you off if job notifications cannot reach you."
@@ -140,7 +142,7 @@ const JobOffer: React.FC = () => {
     <div>
       {isJobCame ? (
         <>
-          <HeaderLayout screenName={String(JobOffer)} />
+          <HeaderLayout screenName={String(jobOffer)} />
           <JobdetailsHeader
             JobidPassed={String(jobIdFromRes)}
             jobNumber={String(jobNumber)}
@@ -155,40 +157,15 @@ const JobOffer: React.FC = () => {
           <PassengerInfo
             passengerName={String(passengerName)}
             passengerPhone={String(passengerPhone)}
-            passerngerNameHeading={passerngerNameHeading}
-            passengerPhoneHeading={passengerPhoneHeading}
+            passerngerNameHeading={String(passengerNameHeading)}
+            passengerPhoneHeading={String(passengerPhoneHeading)}
           />
-            {lastRequestTime ? (
-        <p className="fs-sm">Refresh: {lastRequestTime}</p>
-      ) : (
-        <p className="fs-sm">Refresh time : Loading...</p>
-      )}
-          {/* <SwipeableButton /> 
-          <div style={{ marginTop: "20px", marginBottom: "50px" , width: "70%", margin: "0 auto"}}>
-            <SwipeableButton
-              onSuccess={onSuccess}
-              onFailure={onFailure}
-              text={showButtonAccept}
-              text_unlocked="Loading..."
-              sliderColor="#003182"
-              textColor="#fff"
-              sliderTextColor="#fff"
-              sliderIconColor="#fff"
-              background_color="#418cfe"
-              borderRadius={30}
-              autoWidth
-              disabled={false}
-              name="Button comp"
-            /> 
-          </div>
-          */}
-          {/*
-          <ButtonsComponent
-            buttonText={showButtonAccept}
-            buttonVariant="primary"
-            functionpassed={handleAllowLocation}
-          />
-          */}
+
+          {lastRequestTime ? (
+            <p className="fs-sm">Refresh: {lastRequestTime}</p>
+          ) : (
+            <p className="fs-sm">Refresh time : Loading...</p>
+          )}
           <Popup
             triggerOnLoad={false}
             popTitle="Confirmation"
@@ -211,23 +188,21 @@ const JobOffer: React.FC = () => {
             popupButtonRedClass="secondaryPopup"
             functionpassed={handleRejectJob}
           />
-                  <Popup
-          triggerOnLoad={true}
-          popTitle="Welcome to Driver App"
-          popUpText="Thanks. Please keep this app open at all times to get jobs notification. Dispatcher might sign you off if job notifications cannot reach you."
-          PopUpButtonText="Ok"
-        />
+          <Popup
+            triggerOnLoad={true}
+            popTitle="Welcome to Driver App"
+            popUpText="Thanks. Please keep this app open at all times to get jobs notification. Dispatcher might sign you off if job notifications cannot reach you."
+            PopUpButtonText="Ok"
+          />
         </>
-        
       ) : (
         <div>
           <h1>Waiting for job offer to arrive</h1>
           <ThemedText
-            themeText="We are unable to find a job recommended for you at this time. Please keep this app open. Dispatcher might sign you off if swtch screens."
+            themeText="We are unable to find a job recommended for you at this time. Please keep this app open. Dispatcher might sign you off if you switch screens."
             classPassed="centertext"
           />
         </div>
-        
       )}
     </div>
   );

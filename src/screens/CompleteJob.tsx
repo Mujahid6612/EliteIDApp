@@ -17,6 +17,7 @@ import { RootState } from "../store/store";
 import { setCurrentView } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
+import { getJobDetails } from "../utils/JobDataVal";
 
 interface PropsforLocation {
   dropOfLocation: string;
@@ -113,19 +114,20 @@ const CompleteJob = () => {
     return <Spinner functionPassed={handleAllowLocation} />;  
   }
 
-  const jobDetails = jobData.JData?.[0];
-  const headingsData = jobData.JMetaData?.Headings;
-  const JobOffer = jobDetails[0];
-  const jobIdFromRes = jobDetails[1];
-  const jobNumber = jobDetails[2] || "";
-  const reservationDateTime = jobDetails[3];
-  const pickupAddress = jobDetails[4];
-  const passengerName = jobDetails[6];
-  const showButtonAccept = headingsData[15][1];
+    // Use getJobDetails to extract job-related values
+    const {
+      jobOffer,
+      jobIdFromRes,
+      jobNumber,
+      reservationDateTime,
+      pickupAddress,
+      passengerName,
+      showButtonSave,
+    } = getJobDetails(jobData);
 
   return (
     <>
-      <HeaderLayout screenName={String(JobOffer)} />
+      <HeaderLayout screenName={String(jobOffer)} />
       <JobdetailsHeader
         JobidPassed={String(jobIdFromRes)}
         jobNumber={String(jobNumber)}
@@ -148,12 +150,12 @@ const CompleteJob = () => {
       ) : (
         <p className="fs-sm">Refresh time : Loading...</p>
       )}
-      {/* <UploadImage /> */}
+     {/* <UploadImage /> */}
       {!showValidationPopup && (
         <Popup
           triggerOnLoad={false}
           popTitle="Confirmation"
-          PopUpButtonOpenText={showButtonAccept}
+          PopUpButtonOpenText={showButtonSave}
           popUpText="Are you sure ?"
           PopUpButtonText="Yes"
           popVariantButton="primary"

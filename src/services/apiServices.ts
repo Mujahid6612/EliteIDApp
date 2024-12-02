@@ -40,7 +40,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
     }
   }
   const inpayload = {
-    "ActionCode": "S.ID.ACTION.P",
+    "ActionCode": "S.ID.ACTION",
     "ViewName": viewName,
     "ClientIP": clientIP, 
     "JsonReq": {
@@ -52,7 +52,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
         "DeviceInfo": userAgent, //NEED TO BE DYNAMIC
         "DeviceID": "ABCDEF12-34567890ABCDEF12", //NEED TO BE DYNAMIC RANDION ID 
         "ViewName": viewName, 
-        "ActionCode": "S.ID.ACTION.P",   
+        "ActionCode": "S.ID.ACTION",   
         "ClientVersion": "1.0.0",
         "APIVersion": "1.0.0",
         "APILogin": "user@webapis.com",
@@ -73,7 +73,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
     "Notes": "Test Notes ..."
   };
   const inpayloadWithLocation = {
-    "ActionCode": "S.ID.ACTION.P",
+    "ActionCode": "S.ID.ACTION",
     "ViewName": viewName,
     "ClientIP": clientIP, 
     "JsonReq": {
@@ -85,7 +85,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
         "DeviceInfo": userAgent, //NEED TO BE DYNAMIC
         "DeviceID": "ABCDEF12-34567890ABCDEF12", //NEED TO BE DYNAMIC RANDION ID 
         "ViewName": viewName, 
-        "ActionCode": "S.ID.ACTION.P",   
+        "ActionCode": "S.ID.ACTION",   
         "ClientVersion": "1.0.0",
         "APIVersion": "1.0.0",
         "APILogin": "user@webapis.com",

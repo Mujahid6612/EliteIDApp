@@ -1,27 +1,49 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 interface SpinnerProps {
   size?: string;
   color?: string;
   functionPassed?: (...args: any[]) => void;
-  retryInterval?: number; 
+  retryInterval?: number;
+  onMaxRetries?: () => void;
 }
 
 const Spinner: React.FC<SpinnerProps> = ({
   size = "50px",
   color = "#000",
   functionPassed,
-  retryInterval = 3000, 
+  retryInterval = 3000,
+  onMaxRetries,
 }) => {
+  const [attempts, setAttempts] = useState(0);
+
   useEffect(() => {
-    if (!functionPassed) return;
     const interval = setInterval(() => {
-      functionPassed();
+      setAttempts((prevAttempts) => {
+        const newAttempts = prevAttempts + 1;
+
+        if (functionPassed) {
+          functionPassed();
+        }
+
+        if (newAttempts >= 3) {
+          clearInterval(interval);
+          if (onMaxRetries) {
+            setTimeout(onMaxRetries, 0);
+          }
+        }
+
+        return newAttempts;
+      });
     }, retryInterval);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(interval);
-  }, [functionPassed, retryInterval]);
+  }, [functionPassed, retryInterval, onMaxRetries]);
+
+  // Throw error after 3 attempts
+  if (attempts >= 3) {
+    throw new Error("Something went wrong please refresh this window!");
+  }
 
   return (
     <div
@@ -48,36 +70,3 @@ const Spinner: React.FC<SpinnerProps> = ({
 };
 
 export default Spinner;
-
-
-/*
-interface SpinnerProps {
-  size?: string;
-  color?: string;
-  functionPassed?: (...args: any[]) => void;
-  retryInterval?: number;
-}
-
-const Spinner: React.FC<SpinnerProps> = ({
-  size = "50px",
-  color = "#000",
-  functionPassed,
-  retryInterval = 3000,
-}) => {
-  const [attempts, setAttempts] = useState(0);
-
-  useEffect(() => {
-    if (!functionPassed) return;
-    const interval = setInterval(() => {
-      functionPassed();
-      setAttempts((prevAttempts) => prevAttempts + 1);
-      if (attempts >= 3) {
-        clearInterval(interval);
-        throw new Error("Failed after three attempts");
-      }
-    }, retryInterval);
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
-  }, [functionPassed, retryInterval, attempts]);
-  */

@@ -16,19 +16,40 @@ import { useAuthRefresh } from "../hooks/useAuthRefresh";
 import LocationRequest from "./LocationRequest";
 import Spinner from "../components/Spinner";
 import Unauthorized from "./Unauthorized";
+import { persistor } from "../store/store";
+
 
 const IndexScreen = () => {
   const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt" | null>(null);
   const { jobId } = useParams<{ jobId: string }>();
+  const [retryFailed, setRetryFailed] = useState(false);
   const dispatch = useDispatch();
   const { isAuthenticated, jobData  } = useSelector((state: RootState) => state.auth);
   const { currentRoute } = useSelector((state: RootState) => state.currentView);  
   let currentViwe = jobData?.JData?.[0]?.[0]
 
+  let resfromlogView = useAuthRefresh();
 
-  let responseFromLog = useAuthRefresh();
+  // Initialize responseFromLog in state
+  const [responseFromLog, setResponseFromLog] = useState(resfromlogView);
   console.log("responseFromLog", responseFromLog);
 
+  const clearPersistedStateAndResetAuth = () => {
+    console.log("Clearing persisted state...");
+    persistor.purge();
+    dispatch(setAuthState(null));
+    dispatch(setCurrentView("/"));
+  };
+
+  useEffect(() => {
+    if (resfromlogView) {
+      setResponseFromLog(resfromlogView); // Update responseFromLog state
+      //@ts-ignore
+      responseFromLog?.JHeader?.ActionCode === 1 && clearPersistedStateAndResetAuth();
+    }
+  }, [resfromlogView, responseFromLog]);
+
+  
   // Check the location permission status on mount
   useEffect(() => {
     const checkLocationPermission = async () => {
@@ -87,17 +108,31 @@ const IndexScreen = () => {
     return <LocationRequest permissionBlockedRes={false} onRequestLocation={requestLocation} />;
   }
 
+   // Handle when Spinner exceeds retries
+   const handleRetryFailure = () => {
+    setRetryFailed(true); // Mark retry as failed
+  };
+
+  if (retryFailed) {
+    throw new Error("Unable to fetch job data after multiple attempts."); // Throw error for ErrorBoundary
+  }
+
   if(jobData?.JHeader?.ActionCode == 1) {
     return <Unauthorized message={jobData?.JHeader.Message} />
   }
   
   //@ts-ignore
   if(responseFromLog && responseFromLog?.JHeader?.ActionCode == 1) {
-    //return <Unauthorized message={responseFromLog?.JHeader.Message} />
+    //@ts-ignore
+    return <Unauthorized message={responseFromLog?.JHeader.Message} />
   }
 
   if (!isAuthenticated || jobData?.JHeader == null) {
-    return <Spinner functionPassed={fetchJobData} />;
+    return <Spinner
+    functionPassed={fetchJobData}
+    retryInterval={3000}
+    onMaxRetries={handleRetryFailure} // Pass callback to handle max retries
+  />;
   }
   console.log("currentRoute", currentRoute);
   const getComponentForStatus = (status: string) => {
