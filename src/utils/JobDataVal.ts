@@ -31,8 +31,8 @@ export const getJobDetails = (data: any) => {
     dropoffAddress: getValueFromData(data, "p_CT_DO_FULLADDRESS"),
     passengerName: getValueFromData(data, "p_CT_PASSENGER_NAME"),
     passengerPhone: getValueFromData(data, "p_CT_PASSENGER_PHONE_NUM"),
-    passengerNameHeading: getValueFromData(data, "p_CT_PASSENGER_NAME"),
-    passengerPhoneHeading: getValueFromData(data, "p_CT_PASSENGER_PHONE_NUM"),
+    passengerNameHeading: getButtonLabelFromData(data, "p_CT_PASSENGER_NAME"),
+    passengerPhoneHeading: getButtonLabelFromData(data, "p_CT_PASSENGER_PHONE_NUM"),
 
     showButtonAccept: getButtonLabelFromData(data, "p_SHOW_BTN_ACCEPT"),
     showButtonReject: getButtonLabelFromData(data, "p_SHOW_BTN_REJECT"),

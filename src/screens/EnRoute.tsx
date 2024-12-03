@@ -37,7 +37,7 @@ const EnRoute = ({islogrestricting}: Props) => {
     }
   };
 
-  if (jobData?.JHeader?.ActionCode === 1 || jobData?.JHeader?.ActionCode === 5) {
+  if (jobData?.JHeader?.ActionCode == 1 || jobData?.JHeader?.ActionCode == 5) {
     return <Unauthorized message={jobData?.JHeader.Message} />;
   }  
 
