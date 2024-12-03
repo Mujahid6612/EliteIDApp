@@ -56,7 +56,12 @@ const IndexScreen = () => {
       const token = jobId; 
       dispatch(setTokenForJob({ jobId, token }));
       const res = await authenticate({ token, actionType: "AUTH", viewName: "AUTH" });
+
+      if(res?.JHeader?.ActionCode == 0){
         dispatch(setJobData({ jobId, data: res }));
+      }
+
+       //dispatch(setJobData({ jobId, data: res }));
     } catch (error) {
       console.error("Error fetching job data", error);
     }
