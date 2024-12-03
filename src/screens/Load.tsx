@@ -10,13 +10,14 @@ import { useState } from "react";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../services/apiServices";
-import { setAuthState } from "../store/authSlice";
+import { setJobData } from "../store/authSlice";
 import { RootState } from "../store/store";
-import { setCurrentView } from "../store/currentViewSlice";
+import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
+import { useEffect } from "react";
 
-const Load = () => {
+const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
   const [isStopAdded, setIsStopAdded] = useState(false);
@@ -27,7 +28,7 @@ const Load = () => {
     setIsStopAdded(true);
   };
 
-  const { jobData } = useSelector((state: RootState) => state.auth);
+  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
 
   const handleAllowLocation = async (action: string) => {
     if (!jobId) return;
@@ -37,7 +38,7 @@ const Load = () => {
         actionType: action,
         viewName: "LOAD",
       });
-      dispatch(setAuthState(res));
+      dispatch(setJobData({ jobId, data: res }));
       let currentView =
         Array.isArray(res?.JData) &&
         Array.isArray(res.JData[0]) &&
@@ -45,15 +46,18 @@ const Load = () => {
           ? res.JData[0][0]
           : "On-scene";
       setIsStopAdded(false);
-      if (currentView) {
-        dispatch(setCurrentView(currentView));
-      }
+      dispatch(setCurrentRoute({ jobId, route: currentView }));
     } catch (error) {
       console.error("Error fetching job data", error);
     }
   };
+  useEffect(() => {
+    if (islogrestricting === true) {
+      return window.location.reload();
+    }
+  }, [islogrestricting]);
 
-  if (jobData?.JHeader?.ActionCode === 1) {
+  if (jobData?.JHeader?.ActionCode === 1 || jobData?.JHeader?.ActionCode === 5) {
     return <Unauthorized message={jobData?.JHeader.Message} />;
   }
 

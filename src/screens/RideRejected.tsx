@@ -10,14 +10,15 @@ import { RootState } from "../store/store";
 import Unauthorized from "./Unauthorized";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
-
+import { useParams } from "react-router-dom";
 
 const RideRejected = () => {
   //const dispatch = useDispatch();
+  const { jobId } = useParams<{ jobId: string }>();
   const lastRequestTime = useLastRequestTime();
-  const { jobData } = useSelector((state: RootState) => state.auth);
+  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
 
-  if(jobData?.JHeader?.ActionCode === 1) return <Unauthorized message={jobData?.JHeader.Message} />
+  if(jobData?.JHeader?.ActionCode === 1 || jobData?.JHeader?.ActionCode === 5) return <Unauthorized message={jobData?.JHeader.Message} />
 
   if (!jobData || !jobData?.JData || !jobData?.JHeader) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;

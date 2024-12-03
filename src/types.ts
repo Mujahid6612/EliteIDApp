@@ -1,9 +1,10 @@
 // types.ts
 export interface JHeader {
-    ActionCode: number;
-    Message: string;
-    SysVersion: string;
-  }
+  ActionCode: number;
+  Message: string;
+  SysVersion: string;
+}
+
   
   export interface JMetaData {
     Headings: [string, string][];
@@ -29,21 +30,21 @@ export interface JHeader {
   }
   
   export interface JobApiResponse {
-    JHeader: JHeader;
+    JHeader?: JHeader; // Optional
     JMetaData: JMetaData;
     JData: JData[][];
   }
   
   export interface AuthState {
     isAuthenticated: boolean;
-    jobData: JobApiResponse | null;
+    jobData: Record<string, JobApiResponse | null>; // Maps job IDs to job data
   }
   
   export interface CurrentViewState {
-    currentRoute: string;
+    currentRoutes: Record<string, string>; // Maps job IDs to routes
   }
 
   export interface PAuthToken{
-    token: string
+    tokens: Record<string, string>;
   }
   

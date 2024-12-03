@@ -10,7 +10,7 @@ import tokenReducer from "./tokenSlice"
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"], // Persist only the auth slice
+  whitelist: ["auth", "token", "currentView"], // Persist only the auth slice
 };
 
 const rootReducer = combineReducers({

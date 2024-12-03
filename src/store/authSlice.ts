@@ -4,19 +4,23 @@ import { AuthState, JobApiResponse } from "../types";
 
 const initialState: AuthState = {
   isAuthenticated: false,
-  jobData: null,
+  jobData: {},
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setAuthState: (state, action: PayloadAction<JobApiResponse | null>) => {
-      state.jobData = action.payload;
-      state.isAuthenticated = !!action.payload;
+    setJobData: (state, action: PayloadAction<{ jobId: string; data: JobApiResponse | null }>) => {
+      state.jobData[action.payload.jobId] = action.payload.data;
+      state.isAuthenticated = Object.keys(state.jobData).length > 0;
+    },
+    clearJobData: (state, action: PayloadAction<string>) => {
+      delete state.jobData[action.payload];
+      state.isAuthenticated = Object.keys(state.jobData).length > 0;
     },
   },
 });
 
-export const { setAuthState } = authSlice.actions;
+export const { setJobData, clearJobData } = authSlice.actions;
 export default authSlice.reducer;

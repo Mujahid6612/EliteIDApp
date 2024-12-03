@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import Popup from "../components/Popup";
@@ -12,14 +12,17 @@ import ThemedList from "../components/ThemedList";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../services/apiServices";
-import { setAuthState } from "../store/authSlice";
+import { setJobData } from "../store/authSlice";
 import { RootState } from "../store/store";
-import { setCurrentView } from "../store/currentViewSlice";
+import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
 import { getJobDetails } from "../utils/JobDataVal";
 
-const JobOffer: React.FC = () => {
+interface Props {
+  islogrestricting?: boolean;
+}
+const JobOffer= ({ islogrestricting }: Props) => {
   const dispatch = useDispatch();
   const lastRequestTime = useLastRequestTime();
   const { jobId } = useParams<{ jobId: string }>();
@@ -29,7 +32,8 @@ const JobOffer: React.FC = () => {
   const [titleToPass, setTitleToPass] = useState(
     "Please Allow location permissions for this app on the next page"
   );
-  const { jobData } = useSelector((state: RootState) => state.auth);
+  // Use job-specific selectors
+  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
 
   // Automatically request location on component mount
   useEffect(() => {
@@ -50,10 +54,11 @@ const JobOffer: React.FC = () => {
         actionType: "ACCEPT",
         viewName: "OFFER",
       });
-      dispatch(setAuthState(res));
+      
+      dispatch(setJobData({ jobId, data: res }));
       let currentViwe = res.JData?.[0]?.[0];
-      console.log("currentViwe", currentViwe);
-      dispatch(setCurrentView(currentViwe));
+      console.log("currentViwe-----------------------------", currentViwe);
+      dispatch(setCurrentRoute({ jobId, route: currentViwe }));
     } catch (error) {
       console.error("Error fetching job data", error);
     }
@@ -67,9 +72,12 @@ const JobOffer: React.FC = () => {
         actionType: "REJECT",
         viewName: "OFFER",
       });
+      if(res){
       let currentViwe = res.JData?.[0]?.[0];
-      dispatch(setAuthState(res));
-      dispatch(setCurrentView(currentViwe));
+      console.log("currentViwe-----------------------------", currentViwe);
+      dispatch(setJobData({ jobId, data: res }));
+      dispatch(setCurrentRoute({ jobId, route: currentViwe }));
+      }
     } catch (error) {
       console.error("Error fetching job data", error);
     }
@@ -88,7 +96,13 @@ const JobOffer: React.FC = () => {
     );
   };
 
-  if(jobData?.JHeader?.ActionCode == 1){
+  useEffect(() => {
+    if (islogrestricting === true) {
+      return window.location.reload();
+    }
+  }, [islogrestricting]);
+
+  if(jobData?.JHeader?.ActionCode === 1 || jobData?.JHeader?.ActionCode === 5){
     return <Unauthorized message={jobData?.JHeader.Message} />
   }
 

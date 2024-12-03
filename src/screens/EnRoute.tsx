@@ -8,39 +8,47 @@ import { useParams } from "react-router-dom";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../services/apiServices";
-import { setAuthState } from "../store/authSlice";
+import { setJobData } from "../store/authSlice";
 import { RootState } from "../store/store";
-import { setCurrentView } from "../store/currentViewSlice";
+import { setCurrentRoute } from "../store/currentViewSlice";
 import Popup from "../components/Popup";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Assuming you import this utility
+import { useEffect } from "react";
 
-const EnRoute = () => {
+interface Props{
+  islogrestricting: boolean
+}
+const EnRoute = ({islogrestricting}: Props) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
   const lastRequestTime = useLastRequestTime();
-  const { jobData } = useSelector((state: RootState) => state.auth);
+  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
 
   const handleAllowLocation = async () => {
     if (!jobId) return;
     try {
       const res = await authenticate({ token: jobId, actionType: 'ARRIVE', viewName: 'ARRIVE' });
-      dispatch(setAuthState(res));
-      let currentView = res.JData?.[0]?.[0];
-      dispatch(setCurrentView(currentView));
+        dispatch(setJobData({ jobId, data: res }));
+        let currentView = res.JData?.[0]?.[0];
+        dispatch(setCurrentRoute({ jobId, route: currentView }));
     } catch (error) {
       console.error("Error fetching job data", error);
     }
   };
 
-  if (jobData?.JHeader?.ActionCode === 1) {
+  if (jobData?.JHeader?.ActionCode === 1 || jobData?.JHeader?.ActionCode === 5) {
     return <Unauthorized message={jobData?.JHeader.Message} />;
   }  
 
   if (!jobData || !jobData.JData || !jobData.JHeader) {
     return <Spinner functionPassed={handleAllowLocation} />;
   }
-
+  useEffect(() => {
+    if (islogrestricting === true) {
+      return window.location.reload();
+    }
+  }, [islogrestricting]);
   // Use getJobDetails to extract all job-related data
   const {
     jobOffer,

@@ -3,18 +3,22 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { CurrentViewState } from "../types";
 
 const initialState: CurrentViewState = {
-  currentRoute: "/",
+  currentRoutes: {},
 };
 
 const currentViewSlice = createSlice({
   name: "currentView",
   initialState,
   reducers: {
-    setCurrentView: (state, action: PayloadAction<string> ) => {
-      state.currentRoute = action.payload;
+    setCurrentRoute: (state, action: PayloadAction<{ jobId: string; route: string }>) => {
+      state.currentRoutes[action.payload.jobId] = action.payload.route;
+    },
+    clearCurrentRoute: (state, action: PayloadAction<string>) => {
+      delete state.currentRoutes[action.payload];
     },
   },
 });
 
-export const { setCurrentView } = currentViewSlice.actions;
+export const { setCurrentRoute, clearCurrentRoute } = currentViewSlice.actions;
 export default currentViewSlice.reducer;
+

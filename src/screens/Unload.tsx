@@ -7,10 +7,12 @@ import { RootState } from "../store/store";
 import Unauthorized from "./Unauthorized";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
+import { useParams } from "react-router-dom";
 
 
 const Unload = () => {
-  const { jobData } = useSelector((state: RootState) => state.auth);
+  const { jobId } = useParams<{ jobId: string }>();
+  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
   const lastRequestTime = useLastRequestTime();
 
   if (!jobData || !jobData?.JData || !jobData?.JHeader) {

@@ -1,9 +1,10 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import { RootState } from "../store/store";
-import { setAuthState } from "../store/authSlice";
-import { setCurrentView } from "../store/currentViewSlice";
+import { setJobData } from "../store/authSlice";
+import { setCurrentRoute } from "../store/currentViewSlice";
+import { setTokenForJob } from "../store/tokenSlice";
 import { authenticate } from "../services/apiServices";
 import JobOffer from "./JobOffer";
 import EnRoute from "./EnRoute";
@@ -16,40 +17,26 @@ import { useAuthRefresh } from "../hooks/useAuthRefresh";
 import LocationRequest from "./LocationRequest";
 import Spinner from "../components/Spinner";
 import Unauthorized from "./Unauthorized";
-import { persistor } from "../store/store";
-
 
 const IndexScreen = () => {
   const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt" | null>(null);
   const { jobId } = useParams<{ jobId: string }>();
   const [retryFailed, setRetryFailed] = useState(false);
   const dispatch = useDispatch();
-  const { isAuthenticated, jobData  } = useSelector((state: RootState) => state.auth);
-  const { currentRoute } = useSelector((state: RootState) => state.currentView);  
-  let currentViwe = jobData?.JData?.[0]?.[0]
+  const [islogrestricting, setIsLogRestricting] = useState(false);
 
+  // Using job-specific selectors 
+  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
+  const currentRoute = useSelector((state: RootState) => state.currentView.currentRoutes[jobId || ""]);
   let resfromlogView = useAuthRefresh();
-
-  // Initialize responseFromLog in state
   const [responseFromLog, setResponseFromLog] = useState(resfromlogView);
-  console.log("responseFromLog", responseFromLog);
-
-  const clearPersistedStateAndResetAuth = () => {
-    console.log("Clearing persisted state...");
-    persistor.purge();
-    dispatch(setAuthState(null));
-    dispatch(setCurrentView("/"));
-  };
-
   useEffect(() => {
     if (resfromlogView) {
       setResponseFromLog(resfromlogView); // Update responseFromLog state
       //@ts-ignore
-      responseFromLog?.JHeader?.ActionCode === 1 && clearPersistedStateAndResetAuth();
+      responseFromLog?.JHeader?.ActionCode === 1 ? setIsLogRestricting(true) : setIsLogRestricting(false);
     }
   }, [resfromlogView, responseFromLog]);
-
-  
   // Check the location permission status on mount
   useEffect(() => {
     const checkLocationPermission = async () => {
@@ -66,32 +53,28 @@ const IndexScreen = () => {
   const fetchJobData = async () => {
     if (!jobId) return;
     try {
-      const res = await authenticate({ token: jobId, actionType: "AUTH", viewName: "AUTH" });
-      if (res) {
-        dispatch(setAuthState(res));
-      }
+      const token = jobId; 
+      dispatch(setTokenForJob({ jobId, token }));
+      const res = await authenticate({ token, actionType: "AUTH", viewName: "AUTH" });
+        dispatch(setJobData({ jobId, data: res }));
     } catch (error) {
       console.error("Error fetching job data", error);
     }
   };
 
-  // Fetch job data if necessary, but only after location permission is granted
   useEffect(() => {
-    if (locationPermission === "granted" && !isAuthenticated) {
+    if (locationPermission === "granted" && !jobData) {
       fetchJobData();
     }
-  }, [jobId, isAuthenticated, dispatch, locationPermission]);
+  }, [jobId, jobData, locationPermission, dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated && currentViwe) {
+    //@ts-ignore
+    if (jobData?.JData?.[0]?.[0] && currentRoute !== jobData.JData[0][0]) {
       //@ts-ignore
-      if (currentRoute === currentViwe || currentRoute === "/") {
-        //@ts-ignore
-        dispatch(setCurrentView(currentViwe));
-      }
+      dispatch(setCurrentRoute({ jobId: jobId || "", route: jobData.JData[0][0] }));
     }
-  }, [isAuthenticated, currentViwe, currentRoute, dispatch]);
-
+  }, [jobData, currentRoute, dispatch, jobId]);
   // Location request handler - only called when user clicks the button
   const requestLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -108,55 +91,51 @@ const IndexScreen = () => {
     return <LocationRequest permissionBlockedRes={false} onRequestLocation={requestLocation} />;
   }
 
-   // Handle when Spinner exceeds retries
-   const handleRetryFailure = () => {
-    setRetryFailed(true); // Mark retry as failed
-  };
-
   if (retryFailed) {
-    throw new Error("Unable to fetch job data after multiple attempts."); // Throw error for ErrorBoundary
+    throw new Error("Unable to fetch job data after multiple attempts.");
   }
 
-  if(jobData?.JHeader?.ActionCode == 1) {
-    return <Unauthorized message={jobData?.JHeader.Message} />
+  if (jobData?.JHeader?.ActionCode === 1) {
+    return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
-  
   //@ts-ignore
-  if(responseFromLog && responseFromLog?.JHeader?.ActionCode == 1) {
+  if (responseFromLog?.JHeader?.ActionCode === 1) {
     //@ts-ignore
-    return <Unauthorized message={responseFromLog?.JHeader.Message} />
+    return <Unauthorized message={responseFromLog?.JHeader?.Message} />;
   }
 
-  if (!isAuthenticated || jobData?.JHeader == null) {
-    return <Spinner
-    functionPassed={fetchJobData}
-    retryInterval={3000}
-    onMaxRetries={handleRetryFailure} // Pass callback to handle max retries
-  />;
+  if (!jobData || !jobData.JHeader) {
+    return <Spinner functionPassed={fetchJobData} retryInterval={3000} onMaxRetries={() => setRetryFailed(true)} />;
   }
-  console.log("currentRoute", currentRoute);
+
   const getComponentForStatus = (status: string) => {
     switch (status) {
       case "/": return <JobOffer />;
-      case "Job Offer": return <JobOffer />;
-      //case "En-route": return <EnRoute />;  /// This was changed thats why it was stuck on same screen and popup was not closing
-      case "Job Accepted": return <EnRoute />;
-      case "On-scene": return <OnScene />;
-      case "Load": return <Load />;
-      case "Complete Job": return <CompleteJob />;
-      case "Unload": return <Unload />;
-      case "Ride Rejected": return <RideRejected />;
+      case "Job Offer": return <JobOffer islogrestricting={islogrestricting}    />;
+      case "Job Accepted": return <EnRoute islogrestricting={islogrestricting} />;
+      case "On-scene": return <OnScene islogrestricting={islogrestricting} />;
+      case "Load": return <Load islogrestricting={islogrestricting} />;
+      case "Unload": return <CompleteJob islogrestricting={islogrestricting} />;
+      case "Completed": return <Unload />;
+      case "Ride Rejected": return <RideRejected  />;
       default: return <JobOffer />;
     }
   };
 
-  return getComponentForStatus(currentRoute);
+  return getComponentForStatus(currentRoute || "/");
 };
 
 export default IndexScreen;
 
 
 
-// || jobData?.JHeader == null
-
-
+//import { persistor } from "../store/store";
+  /*
+  const clearPersistedStateAndResetAuth = () => {
+    persistor.purge();
+    if (jobId) {
+      dispatch(setJobData({ jobId, data: null }));
+      dispatch(setCurrentRoute({ jobId, route: "/" }));
+    }
+  };
+  */

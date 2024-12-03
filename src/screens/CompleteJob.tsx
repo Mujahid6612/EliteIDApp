@@ -12,9 +12,9 @@ import { useParams } from "react-router-dom";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
 import { authenticate } from "../services/apiServices";
-import { setAuthState } from "../store/authSlice";
+import { setJobData } from "../store/authSlice";
 import { RootState } from "../store/store";
-import { setCurrentView } from "../store/currentViewSlice";
+import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
 import { getJobDetails } from "../utils/JobDataVal";
@@ -25,10 +25,10 @@ interface PropsforLocation {
   passegerNameInput: string;
 }
 
-const CompleteJob = () => {
+const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
-  const { jobData } = useSelector((state: RootState) => state.auth);
+  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
   const lastRequestTime = useLastRequestTime();
 
   // State for input fields
@@ -98,15 +98,20 @@ const CompleteJob = () => {
         cityStateSer: cityState,
         passegerNameInputSer: passegerNameInput,
       });
-      dispatch(setAuthState(res));
+      dispatch(setJobData({ jobId, data: res }));
       let currentViwe = res.JData?.[0]?.[0];
-      dispatch(setCurrentView(currentViwe));
+      dispatch(setCurrentRoute({ jobId, route: currentViwe }));
     } catch (error) {
       console.error("Error fetching job data", error);
     }
   };
+  useEffect(() => {
+    if (islogrestricting === true) {
+      return window.location.reload();
+    }
+  }, [islogrestricting]);
 
-  if(jobData?.JHeader?.ActionCode == 1){
+  if(jobData?.JHeader?.ActionCode === 1 || jobData?.JHeader?.ActionCode === 5){
     return <Unauthorized message={jobData?.JHeader.Message} />
   }
   // Handle the case where no job data is found [This Part can be reused in all components if we make a helper function] 
