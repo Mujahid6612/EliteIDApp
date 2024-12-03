@@ -34,7 +34,7 @@ const IndexScreen = () => {
     if (resfromlogView) {
       setResponseFromLog(resfromlogView); // Update responseFromLog state
       //@ts-ignore
-      responseFromLog?.JHeader?.ActionCode === 1 ? setIsLogRestricting(true) : setIsLogRestricting(false);
+      responseFromLog?.JHeader?.ActionCode == 1 ? setIsLogRestricting(true) : setIsLogRestricting(false);
     }
   }, [resfromlogView, responseFromLog]);
   // Check the location permission status on mount
