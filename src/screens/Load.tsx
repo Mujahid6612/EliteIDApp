@@ -22,7 +22,8 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
   const { jobId } = useParams<{ jobId: string }>();
   const [isStopAdded, setIsStopAdded] = useState(false);
   const lastRequestTime = useLastRequestTime();
-  let action = isStopAdded ? "ADD_STOP" : "END";
+  //let action = isStopAdded ? "ADD_STOP" : "END";
+  let action = "END";
 
   const handleAddStop = () => {
     setIsStopAdded(true);
