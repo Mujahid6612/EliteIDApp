@@ -26,6 +26,7 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
 
   const handleAddStop = () => {
     setIsStopAdded(true);
+    handleAllowLocation("ADD_STOP");
   };
 
   const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
