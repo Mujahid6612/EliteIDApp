@@ -109,7 +109,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
     "Notes": "Test Notes ..."
   };
 
-  if (dropOfLocationSer && cityStateSer && passegerNameInputSer) {
+  if (dropOfLocationSer && cityStateSer) {
     actualPayload = inpayloadWithLocation 
   } else {
     actualPayload = inpayload
