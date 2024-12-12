@@ -17,7 +17,6 @@ import { useAuthRefresh } from "../hooks/useAuthRefresh";
 import LocationRequest from "./LocationRequest";
 import Spinner from "../components/Spinner";
 import Unauthorized from "./Unauthorized";
-import { Console } from "console";
 
 const IndexScreen = () => {
   const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt" | null>(null);
