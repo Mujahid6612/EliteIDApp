@@ -100,11 +100,11 @@ const IndexScreen = () => {
     throw new Error("Unable to fetch job data after multiple attempts.");
   }
 
-  if (jobData?.JHeader?.ActionCode == 1 || jobData?.JHeader?.ActionCode == 5) {
+  if (jobData?.JHeader?.ActionCode != 0 ) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
   //@ts-ignore
-  if (responseFromLog?.JHeader?.ActionCode == 1 || responseFromLog?.JHeader?.ActionCode == 5) {
+  if (responseFromLog?.JHeader?.ActionCode != 0 ) {
     //@ts-ignore
     return <Unauthorized message={responseFromLog?.JHeader?.Message} />;
   }

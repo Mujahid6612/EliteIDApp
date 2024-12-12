@@ -18,8 +18,9 @@ const RideRejected = () => {
   const lastRequestTime = useLastRequestTime();
   const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
 
-  if(jobData?.JHeader?.ActionCode == 1 || jobData?.JHeader?.ActionCode == 5) return <Unauthorized message={jobData?.JHeader.Message} />
-
+  if (jobData?.JHeader?.ActionCode != 0 ) {
+    return <Unauthorized message={jobData?.JHeader?.Message} />;
+  }
   if (!jobData || !jobData?.JData || !jobData?.JHeader) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }

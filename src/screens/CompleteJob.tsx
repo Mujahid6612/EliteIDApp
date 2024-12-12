@@ -111,8 +111,8 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     }
   }, [islogrestricting]);
 
-  if(jobData?.JHeader?.ActionCode == 1 || jobData?.JHeader?.ActionCode == 5){
-    return <Unauthorized message={jobData?.JHeader.Message} />
+  if (jobData?.JHeader?.ActionCode != 0 ) {
+    return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
   // Handle the case where no job data is found [This Part can be reused in all components if we make a helper function] 
   if (!jobData || !jobData.JData || !jobData.JHeader) {
