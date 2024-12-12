@@ -17,6 +17,7 @@ import { useAuthRefresh } from "../hooks/useAuthRefresh";
 import LocationRequest from "./LocationRequest";
 import Spinner from "../components/Spinner";
 import Unauthorized from "./Unauthorized";
+import { Console } from "console";
 
 const IndexScreen = () => {
   const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt" | null>(null);
@@ -99,15 +100,19 @@ const IndexScreen = () => {
   if (retryFailed) {
     throw new Error("Unable to fetch job data after multiple attempts.");
   }
-
-  if (jobData?.JHeader?.ActionCode != 0 ) {
+ 
+  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
+
   //@ts-ignore
-  if (responseFromLog?.JHeader?.ActionCode != 0 ) {
+  if (Number(responseFromLog?.JHeader?.ActionCode) > 0 ) {
     //@ts-ignore
     return <Unauthorized message={responseFromLog?.JHeader?.Message} />;
   }
+ 
+ 
+
 
   if (!jobData || !jobData.JHeader) {
     return <Spinner functionPassed={fetchJobData} retryInterval={3000} onMaxRetries={() => setRetryFailed(true)} />;

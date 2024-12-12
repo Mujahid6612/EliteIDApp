@@ -50,7 +50,7 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
   }, [islogrestricting]);
   
   
-  if (jobData?.JHeader?.ActionCode != 0 ) {
+  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
 

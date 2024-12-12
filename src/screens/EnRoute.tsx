@@ -37,9 +37,9 @@ const EnRoute = ({islogrestricting}: Props) => {
     }
   };
 
-  if (jobData?.JHeader?.ActionCode != 0 ) {
+  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
-  }  
+  }
 
   if (!jobData || !jobData.JData || !jobData.JHeader) {
     return <Spinner functionPassed={handleAllowLocation} />;

@@ -70,7 +70,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
         "p_AUTH_TOKEN": token
       }
     },
-    "Notes": "Test Notes ..."
+    "Notes": "Test... by Kazim"
   };
   const inpayloadWithLocation = {
     "ActionCode": "S.ID.ACTION.P",
@@ -106,7 +106,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
         "p_PARAM_3": passegerNameInputSer
       }
     },
-    "Notes": "Test Notes ..."
+    "Notes": "Test... by Kazim"
   };
 
   if (dropOfLocationSer && cityStateSer) {

@@ -110,10 +110,11 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
       return window.location.reload();
     }
   }, [islogrestricting]);
-
-  if (jobData?.JHeader?.ActionCode != 0 ) {
+ 
+  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
+ 
   // Handle the case where no job data is found [This Part can be reused in all components if we make a helper function] 
   if (!jobData || !jobData.JData || !jobData.JHeader) {
     return <Spinner functionPassed={handleAllowLocation} />;  

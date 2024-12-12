@@ -23,7 +23,7 @@ const Spinner: React.FC<SpinnerProps> = ({
         const newAttempts = prevAttempts + 1;
 
         if (functionPassed) {
-          functionPassed();
+          functionPassed(); 
         }
 
         if (newAttempts >= 3) {
