@@ -23,13 +23,7 @@ const Spinner: React.FC<SpinnerProps> = ({
         const newAttempts = prevAttempts + 1;
 
         if (functionPassed) {
-          const result = functionPassed();
-          
-          //@ts-ignore
-          if (result?.JHeader?.ActionCode) {
-            // Unmount the component and refresh the window
-            window.location.reload(); // Refreshes the entire page
-          }
+          functionPassed();
         }
 
         if (newAttempts >= 3) {
