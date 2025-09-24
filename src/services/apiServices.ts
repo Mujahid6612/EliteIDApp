@@ -121,7 +121,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
   const finalPayload =  JSON.stringify(actualPayload);
   console.log('Payload:++++++++++++++++++++++++++++++++++++++++++++++++++++', finalPayload);
   try {
-    const response =  await axios.post('http://dev-idapi.eliteny.com/Web/DBAPI/ProcessRequest', JSON.stringify(finalPayload), {
+    const response =  await axios.post('https://idapi.eliteny.com/Web/DBAPI/ProcessRequest', JSON.stringify(finalPayload), {
       headers: {
         'Content-Type': 'application/json', // Ensure the content type is set correctly
       }
