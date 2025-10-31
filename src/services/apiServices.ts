@@ -57,7 +57,7 @@ export const authenticate = async function ({token, actionType, viewName,   drop
         "APIVersion": "1.0.0",
         "APILogin": "user@webapis.com",
         "APIPassword": "12345",
-        "RequestedURL": "https://idapi.eliteny.com/Web/DBAPI/ProcessRequest",  
+        "RequestedURL": "https://dev-idapi.eliteny.com/Web/DBAPI/ProcessRequest",  
         "Debug": "false",
         "GPSLatitude": gpslat,
         "GPSLongitude": gpslong,  

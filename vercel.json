@@ -1,1 +1,3 @@
-{ "rewrites": [{ "source": "/(.*)", "destination": "/" }] }
+{
+    "devCommand": "vite --port 3000"
+}
