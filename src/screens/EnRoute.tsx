@@ -11,7 +11,7 @@ import { authenticate } from "../services/apiServices";
 import { setJobData } from "../store/authSlice";
 import { RootState } from "../store/store";
 import { setCurrentRoute } from "../store/currentViewSlice";
-import Popup from "../components/Popup";
+// import Popup from "../components/Popup";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Assuming you import this utility
 import { useEffect, useState } from "react";
@@ -118,7 +118,7 @@ const EnRoute = ({ islogrestricting }: Props) => {
         functionpassed={handleAllowLocation}
       /> */}
       <SwipeButton
-        text={showButtonArrive}
+        text={textMapper(String(showButtonArrive))}
         onSwipeComplete={handleAllowLocation}
         disabled={loading}
         loading={loading}
