@@ -4,7 +4,7 @@ import FormatDateCom from "../components/FormatDateCom";
 import { PassengerInfo, LocationDetails } from "../components/LocationDetails";
 import Spinner from "../components/Spinner";
 // import ButtonsComponent from "../components/ButtonsComponent";
-import Popup from "../components/Popup";
+// import Popup from "../components/Popup";
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import Unauthorized from "./Unauthorized";
@@ -126,7 +126,7 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
       )}
       <div className="mb-20"></div>
       <div style={{ textAlign: "center" }}>
-        <Popup
+        {/* <Popup
           triggerOnLoad={false}
           popTitle="Confirmation"
           PopUpButtonOpenText={isStopAdded ? showButtonStart : showButtonEnd}
@@ -136,7 +136,7 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
           secondButtonText="No"
           popupButtonRedClass="secondaryPopup"
           functionpassed={() => handleAllowLocation(action)}
-        />
+        /> */}
         <SwipeButton
           text={isStopAdded ? showButtonStart : showButtonEnd}
           onSwipeComplete={() => handleAllowLocation(action)}
