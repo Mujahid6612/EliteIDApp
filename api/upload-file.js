@@ -1,91 +1,93 @@
 import { put } from "@vercel/blob";
+import formidable from "formidable";
+import { createReadStream } from "node:fs";
+import { posix } from "node:path";
 
-export default async function handler(request) {
-  // Only allow POST requests
-  if (request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: {
-        "Content-Type": "application/json",
-        Allow: "POST",
-      },
-    });
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
+
+  res.setHeader("Content-Type", "application/json");
 
   try {
-    // Parse the request body
-    const contentType = request.headers.get("content-type") || "";
+    const { file, fileName } = await parseMultipartForm(req);
 
-    let fileBuffer;
-    let fileName;
-    let fileContentType;
-
-    // Handle FormData (multipart/form-data)
-    if (contentType.includes("multipart/form-data")) {
-      const formData = await request.formData();
-      const file = formData.get("file");
-      fileName = formData.get("filename");
-
-      if (!file) {
-        return new Response(
-          JSON.stringify({ error: "No file provided in FormData" }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      if (!fileName) {
-        return new Response(JSON.stringify({ error: "Filename is required" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      // Convert File/Blob to ArrayBuffer then to Buffer
-      const arrayBuffer = await file.arrayBuffer();
-      fileBuffer = Buffer.from(arrayBuffer);
-      fileContentType = file.type || "application/octet-stream";
+    if (!file) {
+      return res.status(400).json({ error: "Missing file" });
     }
 
-    // Validate filename
-    if (!fileName || fileName.trim() === "") {
-      return new Response(JSON.stringify({ error: "Filename is required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    const determinedName = fileName;
+
+    if (!determinedName) {
+      return res.status(400).json({ error: "Missing file name" });
     }
 
-    // Upload to blob storage
-    const { url } = await put(fileName, fileBuffer, {
+    const safeFileName = determinedName;
+    const blobPath = `uploads/${safeFileName}`;
+
+    const { url } = await put(blobPath, createReadStream(file.filepath), {
       access: "public",
+      contentType: file.mimetype,
+      addRandomSuffix: false,
       allowOverwrite: true,
-      contentType: fileContentType,
     });
 
-    return new Response(
-      JSON.stringify({
-        url,
-        filename: fileName,
-        message: "File uploaded successfully",
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return res.status(200).json({ url, path: blobPath });
   } catch (error) {
-    console.error("Upload error:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Failed to upload file",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    console.error("Failed to upload file", error);
+    return res.status(400).json({ error: error?.message || "Upload failed" });
   }
+}
+
+function parseMultipartForm(req) {
+  const form = formidable({ multiples: false, keepExtensions: true });
+
+  return new Promise((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        return reject(err);
+      }
+
+      const uploadedFile = normalizeFile(
+        files.file ?? firstValue(Object.values(files))
+      );
+      const providedName = firstValue(
+        fields.fileName ?? fields.filename ?? fields.name ?? fields.file
+      );
+
+      resolve({ file: uploadedFile, fileName: providedName });
+    });
+  });
+}
+
+function firstValue(value) {
+  if (!value) {
+    return undefined;
+  }
+
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+function normalizeFile(file) {
+  if (!file) {
+    return undefined;
+  }
+
+  if (Array.isArray(file)) {
+    return file[0];
+  }
+
+  return file;
 }
