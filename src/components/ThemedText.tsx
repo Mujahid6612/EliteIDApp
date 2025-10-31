@@ -2,11 +2,12 @@
 interface ThemedTextProps {
     themeText: string
     classPassed: "lefttext" | "righttext" | "centertext"
+    style?: React.CSSProperties
 }
 
-const ThemedText = ({themeText, classPassed}:ThemedTextProps ) => {
+const ThemedText = ({themeText, classPassed, style}:ThemedTextProps ) => {
   return (
-    <p className={classPassed}>{themeText}</p>
+    <p className={classPassed} style={style}>{themeText}</p>
   )
 }
 

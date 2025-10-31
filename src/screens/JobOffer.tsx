@@ -126,7 +126,7 @@ const JobOffer= ({ islogrestricting }: Props) => {
     showButtonAccept,
     showButtonReject,
   } = getJobDetails(jobData);
-
+  console.log("permissionBlockedRes", permissionBlockedRes);
   if (permissionBlockedRes) {
     return (
       <div>
@@ -152,6 +152,7 @@ const JobOffer= ({ islogrestricting }: Props) => {
       </div>
     );
   }
+  console.log("showButtonAccept", showButtonAccept);
   return (
     <div>
       {isJobCame ? (

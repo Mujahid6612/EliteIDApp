@@ -15,29 +15,36 @@ import Popup from "../components/Popup";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Assuming you import this utility
 import { useEffect } from "react";
+import { textMapper } from "../functions/text-mapper";
 
-interface Props{
-  islogrestricting: boolean
+interface Props {
+  islogrestricting: boolean;
 }
-const EnRoute = ({islogrestricting}: Props) => {
+const EnRoute = ({ islogrestricting }: Props) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
   const lastRequestTime = useLastRequestTime();
-  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
+  const jobData = useSelector(
+    (state: RootState) => state.auth.jobData[jobId || ""]
+  );
 
   const handleAllowLocation = async () => {
     if (!jobId) return;
     try {
-      const res = await authenticate({ token: jobId, actionType: 'ARRIVE', viewName: 'ARRIVE' });
-        dispatch(setJobData({ jobId, data: res }));
-        let currentView = res.JData?.[0]?.[0];
-        dispatch(setCurrentRoute({ jobId, route: currentView }));
+      const res = await authenticate({
+        token: jobId,
+        actionType: "ARRIVE",
+        viewName: "ARRIVE",
+      });
+      dispatch(setJobData({ jobId, data: res }));
+      let currentView = res.JData?.[0]?.[0];
+      dispatch(setCurrentRoute({ jobId, route: currentView }));
     } catch (error) {
       console.error("Error fetching job data", error);
     }
   };
 
-  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
+  if (Number(jobData?.JHeader?.ActionCode) > 0) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
 
@@ -64,14 +71,22 @@ const EnRoute = ({islogrestricting}: Props) => {
     showButtonArrive,
   } = getJobDetails(jobData);
 
+  console.log("showButtonArrive", showButtonArrive);
+
   return (
     <>
       <HeaderLayout screenName={String(jobOffer)} />
-      <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
+      <JobdetailsHeader
+        JobidPassed={String(jobIdFromRes)}
+        jobNumber={String(jobNumber)}
+      />
       <div className="ml-10">
         <FormatDateCom datePassed={String(reservationDateTime)} />
       </div>
-      <LocationDetails pickupAddress={String(pickupAddress)} dropoffAddress={String(dropoffAddress)} />
+      <LocationDetails
+        pickupAddress={String(pickupAddress)}
+        dropoffAddress={String(dropoffAddress)}
+      />
       <PassengerInfo
         passengerName={String(passengerName)}
         passengerPhone={String(passengerPhone)}
@@ -87,7 +102,7 @@ const EnRoute = ({islogrestricting}: Props) => {
       <Popup
         triggerOnLoad={false}
         popTitle="Confirmation"
-        PopUpButtonOpenText={showButtonArrive}
+        PopUpButtonOpenText={textMapper(String(showButtonArrive))}
         popUpText="Are you sure?"
         PopUpButtonText="Yes"
         popVariantButton="primary"

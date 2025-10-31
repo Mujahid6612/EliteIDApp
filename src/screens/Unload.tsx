@@ -1,4 +1,3 @@
-
 import HeaderLayout from "../components/HeaderLayout";
 import JobdetailsHeader from "../components/JobdetailsHeader";
 import ThemedText from "../components/ThemedText";
@@ -9,10 +8,11 @@ import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
 import { useParams } from "react-router-dom";
 
-
 const Unload = () => {
   const { jobId } = useParams<{ jobId: string }>();
-  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
+  const jobData = useSelector(
+    (state: RootState) => state.auth.jobData[jobId || ""]
+  );
   const lastRequestTime = useLastRequestTime();
 
   if (!jobData || !jobData?.JData || !jobData?.JHeader) {
@@ -22,7 +22,10 @@ const Unload = () => {
   return (
     <>
       <HeaderLayout screenName={String(jobOffer)} />
-      <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
+      <JobdetailsHeader
+        JobidPassed={String(jobIdFromRes)}
+        jobNumber={String(jobNumber)}
+      />
       {lastRequestTime ? (
         <p className="fs-sm">Refresh: {lastRequestTime}</p>
       ) : (
@@ -33,8 +36,10 @@ const Unload = () => {
         style={{ height: "80vh", flexDirection: "column", gap: "30px" }}
       >
         <ThemedText
+          style={{ fontSize: "26px", fontWeight: "bold", lineHeight: "1.5" }}
           themeText={
-            jobData?.JHeader?.Message || "Please keep this window open till you receive your next job from the dispatcher."
+            jobData?.JHeader?.Message ||
+            "Please keep this window open till you receive your next job from the dispatcher."
           }
           classPassed="centertext"
         />

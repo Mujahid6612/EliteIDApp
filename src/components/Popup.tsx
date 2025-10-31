@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ThemedText from './ThemedText';
-import ButtonsComponent from './ButtonsComponent';
+import React, { useState, useRef, useEffect } from "react";
+import ThemedText from "./ThemedText";
+import ButtonsComponent from "./ButtonsComponent";
 
 interface PopupProps {
   triggerOnLoad?: boolean;
@@ -10,11 +10,21 @@ interface PopupProps {
   PopUpButtonOpenText?: string;
   popVariantButton?: string;
   secondButtonText?: string;
-  popupButtonRedClass?: string
-  functionpassed?: (params?: any) => void
+  popupButtonRedClass?: string;
+  functionpassed?: (params?: any) => void;
 }
 
-const Popup: React.FC<PopupProps> = ({ triggerOnLoad = false, popTitle, popUpText, PopUpButtonText, PopUpButtonOpenText= "Open Popup", popVariantButton, secondButtonText, popupButtonRedClass, functionpassed }) => {
+const Popup: React.FC<PopupProps> = ({
+  triggerOnLoad = false,
+  popTitle,
+  popUpText,
+  PopUpButtonText,
+  PopUpButtonOpenText = "Open Popup",
+  popVariantButton,
+  secondButtonText,
+  popupButtonRedClass,
+  functionpassed,
+}) => {
   const [isOpen, setIsOpen] = useState(triggerOnLoad);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -31,24 +41,27 @@ const Popup: React.FC<PopupProps> = ({ triggerOnLoad = false, popTitle, popUpTex
 
   useEffect(() => {
     if (isOpen) {
-      document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener("mousedown", handleOutsideClick);
     } else {
-      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener("mousedown", handleOutsideClick);
     }
 
     // Cleanup event listener on component unmount
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [isOpen]);
 
   return (
     <>
       {/* Button to trigger the popup only if it's not triggered on load */}
       {!triggerOnLoad && (
-        <div style={{textAlign: "center"}}>
-        <button className={`button ${popVariantButton}`} onClick={togglePopup} >
-          {PopUpButtonOpenText}
-        </button>
-        </div> 
+        <div style={{ textAlign: "center" }}>
+          <button
+            className={`button ${popVariantButton}`}
+            onClick={togglePopup}
+          >
+            {PopUpButtonOpenText}
+          </button>
+        </div>
       )}
 
       {/* Popup Modal */}
@@ -56,13 +69,23 @@ const Popup: React.FC<PopupProps> = ({ triggerOnLoad = false, popTitle, popUpTex
         <div className="popup-overlay">
           <div className="popup-content" ref={popupRef}>
             <h2>{popTitle}</h2>
-            <ThemedText  themeText={popUpText} classPassed="centertext" />
+            <ThemedText themeText={popUpText} classPassed="centertext" />
             <div className={`${secondButtonText && "d-flex-cen fl-gap"}`}>
-            <ButtonsComponent buttonWidth="110px" popupButtonRedClass={popupButtonRedClass}  popVariantButton={popVariantButton} buttonText={PopUpButtonText} functionpassed={functionpassed || togglePopup}/> 
-            {secondButtonText &&
-            <ButtonsComponent buttonWidth="110px"  buttonText={secondButtonText} functionpassed={togglePopup}/>
-              }
-              </div>
+              <ButtonsComponent
+                buttonWidth="110px"
+                popupButtonRedClass={popupButtonRedClass}
+                popVariantButton={popVariantButton}
+                buttonText={PopUpButtonText}
+                functionpassed={functionpassed || togglePopup}
+              />
+              {secondButtonText && (
+                <ButtonsComponent
+                  buttonWidth="110px"
+                  buttonText={secondButtonText}
+                  functionpassed={togglePopup}
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
