@@ -5,15 +5,6 @@ interface UnauthorizedProps {
   message?: string;
 }
 const Unauthorized = ({ message }: UnauthorizedProps) => {
-  const testApi = async () => {
-    try {
-      const res = await fetch("/api/hello");
-      const data = await res.json();
-      alert(data.message || "Hello world");
-    } catch (e) {
-      alert("Failed to call API");
-    }
-  };
   return (
     <>
       <HeaderLayout screenName="Unauthorized" />
@@ -37,9 +28,6 @@ const Unauthorized = ({ message }: UnauthorizedProps) => {
           </div>
         )}
         <div className="divider"></div>
-        <button className="button primary" onClick={testApi}>
-          Test API
-        </button>
       </div>
     </>
   );
