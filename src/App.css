@@ -22,3 +22,13 @@
     animation: logo-spin infinite 20s linear;
   }
 }
+
+body {
+  background-color: #f0f0f0;
+}
+
+input {
+  background-color: #f0f0f0 !important;
+  border: 1px solid rgb(143, 143, 143);
+  color: rgba(0, 0, 0, 0.87);
+}
