@@ -5,6 +5,7 @@ export default async function handler(req, res) {
 
   const { url } = await put("articles/blob.txt", "Hello World!", {
     access: "public",
+    allowOverwrite: true,
   });
 
   res.status(200).json({ url });
