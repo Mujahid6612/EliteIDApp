@@ -14,15 +14,19 @@ import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
 import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import SwipeButton from "../components/SwipeButton";
 
 const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
   const dispatch = useDispatch();
   const lastRequestTime = useLastRequestTime();
   const { jobId } = useParams<{ jobId: string }>();
-  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
-
+  const jobData = useSelector(
+    (state: RootState) => state.auth.jobData[jobId || ""]
+  );
+  const [loading, setLoading] = useState(false);
   const handleAllowLocation = async () => {
+    setLoading(true);
     if (!jobId) return;
     try {
       const res = await authenticate({
@@ -31,15 +35,18 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
         viewName: "ONSCENE",
       });
       dispatch(setJobData({ jobId, data: res }));
-      let currentView =
+      const currentView =
         Array.isArray(res?.JData) &&
         Array.isArray(res.JData[0]) &&
         res.JData[0][0] !== undefined
           ? res.JData[0][0]
           : "On-scene";
       dispatch(setCurrentRoute({ jobId, route: currentView }));
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching job data", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,9 +55,8 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
       return window.location.reload();
     }
   }, [islogrestricting]);
-  
-  
-  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
+
+  if (Number(jobData?.JHeader?.ActionCode) > 0) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
 
@@ -75,7 +81,10 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
   return (
     <>
       <HeaderLayout screenName={String(jobOffer)} />
-      <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
+      <JobdetailsHeader
+        JobidPassed={String(jobIdFromRes)}
+        jobNumber={String(jobNumber)}
+      />
       <div className="ml-10">
         <FormatDateCom datePassed={String(reservationDateTime)} />
       </div>
@@ -94,7 +103,7 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
       ) : (
         <p className="fs-sm">Refresh time: Loading...</p>
       )}
-      <Popup
+      {/* <Popup
         triggerOnLoad={false}
         popTitle="Confirmation"
         PopUpButtonOpenText={showButtonStart}
@@ -104,9 +113,15 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
         secondButtonText="No"
         popupButtonRedClass="secondaryPopup"
         functionpassed={handleAllowLocation}
+      /> */}
+      <SwipeButton
+        text={showButtonStart}
+        onSwipeComplete={handleAllowLocation}
+        disabled={loading}
+        loading={loading}
       />
     </>
-  )
-}
+  );
+};
 
-export default OnScene
+export default OnScene;

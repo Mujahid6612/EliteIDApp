@@ -16,23 +16,28 @@ import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
 import { useEffect } from "react";
+import SwipeButton from "../components/SwipeButton";
 
 const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
   const [isStopAdded, setIsStopAdded] = useState(false);
+  const [endingRide, setEndingRide] = useState(false);
   const lastRequestTime = useLastRequestTime();
   //let action = isStopAdded ? "ADD_STOP" : "END";
-  let action = "END";
+  const action = "END";
 
   const handleAddStop = () => {
     setIsStopAdded(true);
     handleAllowLocation("ADD_STOP");
   };
 
-  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
+  const jobData = useSelector(
+    (state: RootState) => state.auth.jobData[jobId || ""]
+  );
 
   const handleAllowLocation = async (action: string) => {
+    setEndingRide(true);
     if (!jobId) return;
     try {
       const res = await authenticate({
@@ -41,7 +46,7 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
         viewName: "LOAD",
       });
       dispatch(setJobData({ jobId, data: res }));
-      let currentView =
+      const currentView =
         Array.isArray(res?.JData) &&
         Array.isArray(res.JData[0]) &&
         res.JData[0][0] !== undefined
@@ -49,8 +54,11 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
           : "On-scene";
       setIsStopAdded(false);
       dispatch(setCurrentRoute({ jobId, route: currentView }));
+      setEndingRide(false);
     } catch (error) {
       console.error("Error fetching job data", error);
+    } finally {
+      setEndingRide(false);
     }
   };
   useEffect(() => {
@@ -59,7 +67,7 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
     }
   }, [islogrestricting]);
 
-  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
+  if (Number(jobData?.JHeader?.ActionCode) > 0) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
 
@@ -81,13 +89,16 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
     passengerPhoneHeading,
     showButtonEnd,
     showButtonAddStop,
-    showButtonStart
+    showButtonStart,
   } = getJobDetails(jobData);
 
   return (
     <>
       <HeaderLayout screenName={String(jobOffer)} />
-      <JobdetailsHeader JobidPassed={String(jobIdFromRes)} jobNumber={String(jobNumber)} />
+      <JobdetailsHeader
+        JobidPassed={String(jobIdFromRes)}
+        jobNumber={String(jobNumber)}
+      />
       <div className="ml-10">
         <FormatDateCom datePassed={String(reservationDateTime)} />
       </div>
@@ -107,16 +118,10 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
         <p className="fs-sm">Refresh time: Loading...</p>
       )}
       {!isStopAdded && (
-        <Popup
-          triggerOnLoad={false}
-          popTitle="Confirmation"
-          PopUpButtonOpenText={showButtonAddStop}
-          popUpText="Are you sure?"
-          PopUpButtonText="Yes"
-          popVariantButton="secondary"
-          secondButtonText="No"
-          popupButtonRedClass="secondaryPopup"
-          functionpassed={handleAddStop}
+        <SwipeButton
+          text={showButtonAddStop}
+          onSwipeComplete={handleAddStop}
+          type="danger"
         />
       )}
       <div className="mb-20"></div>
@@ -131,6 +136,12 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
           secondButtonText="No"
           popupButtonRedClass="secondaryPopup"
           functionpassed={() => handleAllowLocation(action)}
+        />
+        <SwipeButton
+          text={isStopAdded ? showButtonStart : showButtonEnd}
+          onSwipeComplete={() => handleAllowLocation(action)}
+          disabled={endingRide}
+          loading={endingRide}
         />
       </div>
     </>

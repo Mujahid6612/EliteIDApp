@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import Popup from "../components/Popup";
@@ -18,11 +18,14 @@ import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
 import { getJobDetails } from "../utils/JobDataVal";
+import SwipeButton from "../components/SwipeButton";
 
 interface Props {
   islogrestricting?: boolean;
 }
-const JobOffer= ({ islogrestricting }: Props) => {
+const JobOffer = ({ islogrestricting }: Props) => {
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const dispatch = useDispatch();
   const lastRequestTime = useLastRequestTime();
   const { jobId } = useParams<{ jobId: string }>();
@@ -33,7 +36,9 @@ const JobOffer= ({ islogrestricting }: Props) => {
     "Please Allow location permissions for this app on the next page"
   );
   // Use job-specific selectors
-  const jobData = useSelector((state: RootState) => state.auth.jobData[jobId || ""]);
+  const jobData = useSelector(
+    (state: RootState) => state.auth.jobData[jobId || ""]
+  );
 
   // Automatically request location on component mount
   useEffect(() => {
@@ -47,6 +52,7 @@ const JobOffer= ({ islogrestricting }: Props) => {
   }, [permissionBlockedRes]);
 
   const handleAllowLocation = async () => {
+    setIsAccepting(true);
     if (!jobId) return;
     try {
       const res = await authenticate({
@@ -54,17 +60,21 @@ const JobOffer= ({ islogrestricting }: Props) => {
         actionType: "ACCEPT",
         viewName: "OFFER",
       });
-      
+
       dispatch(setJobData({ jobId, data: res }));
-      let currentViwe = res.JData?.[0]?.[0];
+      const currentViwe = res.JData?.[0]?.[0];
       console.log("currentViwe-----------------------------", currentViwe);
       dispatch(setCurrentRoute({ jobId, route: currentViwe }));
+      setIsAccepting(false);
     } catch (error) {
       console.error("Error fetching job data", error);
+    } finally {
+      setIsAccepting(false);
     }
   };
 
   const handleRejectJob = async () => {
+    setIsRejecting(true);
     if (!jobId) return;
     try {
       const res = await authenticate({
@@ -72,14 +82,17 @@ const JobOffer= ({ islogrestricting }: Props) => {
         actionType: "REJECT",
         viewName: "OFFER",
       });
-      if(res){
-      let currentViwe = res.JData?.[0]?.[0];
-      console.log("currentViwe-----------------------------", currentViwe);
-      dispatch(setJobData({ jobId, data: res }));
-      dispatch(setCurrentRoute({ jobId, route: currentViwe }));
+      if (res) {
+        const currentViwe = res.JData?.[0]?.[0];
+        console.log("currentViwe-----------------------------", currentViwe);
+        dispatch(setJobData({ jobId, data: res }));
+        dispatch(setCurrentRoute({ jobId, route: currentViwe }));
       }
+      setIsRejecting(false);
     } catch (error) {
       console.error("Error fetching job data", error);
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -102,7 +115,7 @@ const JobOffer= ({ islogrestricting }: Props) => {
     }
   }, [islogrestricting]);
 
-  if (Number(jobData?.JHeader?.ActionCode) > 0 ) {
+  if (Number(jobData?.JHeader?.ActionCode) > 0) {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
 
@@ -181,7 +194,7 @@ const JobOffer= ({ islogrestricting }: Props) => {
           ) : (
             <p className="fs-sm">Refresh time : Loading...</p>
           )}
-          <Popup
+          {/* <Popup
             triggerOnLoad={false}
             popTitle="Confirmation"
             PopUpButtonOpenText={showButtonAccept}
@@ -191,8 +204,14 @@ const JobOffer= ({ islogrestricting }: Props) => {
             secondButtonText="No"
             popupButtonRedClass="secondaryPopup"
             functionpassed={handleAllowLocation}
+          /> */}
+          <SwipeButton
+            text={showButtonAccept}
+            onSwipeComplete={handleAllowLocation}
+            disabled={isAccepting}
+            loading={isAccepting}
           />
-          <Popup
+          {/* <Popup
             triggerOnLoad={false}
             popTitle="Confirmation"
             PopUpButtonOpenText={showButtonReject}
@@ -202,6 +221,13 @@ const JobOffer= ({ islogrestricting }: Props) => {
             secondButtonText="No"
             popupButtonRedClass="secondaryPopup"
             functionpassed={handleRejectJob}
+          /> */}
+          <SwipeButton
+            text={showButtonReject}
+            onSwipeComplete={handleRejectJob}
+            type="danger"
+            disabled={isRejecting}
+            loading={isRejecting}
           />
           <Popup
             triggerOnLoad={true}

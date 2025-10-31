@@ -14,13 +14,15 @@ import { setCurrentRoute } from "../store/currentViewSlice";
 import Popup from "../components/Popup";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Assuming you import this utility
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { textMapper } from "../functions/text-mapper";
+import SwipeButton from "../components/SwipeButton";
 
 interface Props {
   islogrestricting: boolean;
 }
 const EnRoute = ({ islogrestricting }: Props) => {
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
   const lastRequestTime = useLastRequestTime();
@@ -29,6 +31,7 @@ const EnRoute = ({ islogrestricting }: Props) => {
   );
 
   const handleAllowLocation = async () => {
+    setLoading(true);
     if (!jobId) return;
     try {
       const res = await authenticate({
@@ -39,8 +42,11 @@ const EnRoute = ({ islogrestricting }: Props) => {
       dispatch(setJobData({ jobId, data: res }));
       const currentView = res.JData?.[0]?.[0];
       dispatch(setCurrentRoute({ jobId, route: currentView }));
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching job data", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,7 +106,7 @@ const EnRoute = ({ islogrestricting }: Props) => {
         <p className="fs-sm">Refresh time: Loading...</p>
       )}
       {/* <ButtonsComponent buttonText="Click to Arrive" buttonVariant="primary" functionPassed={handleAllowLocation} /> */}
-      <Popup
+      {/* <Popup
         triggerOnLoad={false}
         popTitle="Confirmation"
         PopUpButtonOpenText={textMapper(String(showButtonArrive))}
@@ -110,6 +116,12 @@ const EnRoute = ({ islogrestricting }: Props) => {
         secondButtonText="No"
         popupButtonRedClass="secondaryPopup"
         functionpassed={handleAllowLocation}
+      /> */}
+      <SwipeButton
+        text={showButtonArrive}
+        onSwipeComplete={handleAllowLocation}
+        disabled={loading}
+        loading={loading}
       />
     </>
   );

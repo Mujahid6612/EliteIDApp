@@ -1,0 +1,246 @@
+.swipe-button-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.swipe-button {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 60px;
+  background-color: rgba(65, 140, 254, 0.2);
+  border: 2px solid #418cfe;
+  border-radius: 30px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.swipe-button:hover:not(.swipe-button-disabled) {
+  border-color: #003182;
+  background-color: rgba(0, 49, 130, 0.2);
+}
+
+.swipe-button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.swipe-button-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #418cfe;
+  border-radius: 30px;
+  transition: width 0.3s ease-out;
+  z-index: 1;
+}
+
+.swipe-button-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+}
+
+.swipe-button-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #418cfe;
+  transition: color 0.3s ease;
+}
+
+.swipe-button:hover:not(.swipe-button-disabled) .swipe-button-text {
+  color: #003182;
+}
+
+.swipe-button-arrow {
+  font-size: 1.5rem;
+  color: #418cfe;
+  transition: transform 0.3s ease, color 0.3s ease;
+  font-weight: bold;
+}
+
+.swipe-button-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: swipe-button-spin 0.8s linear infinite;
+}
+
+@keyframes swipe-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.swipe-button-loading {
+  cursor: wait;
+}
+
+.swipe-button:hover:not(.swipe-button-disabled) .swipe-button-arrow {
+  color: #003182;
+  transform: translateX(5px);
+}
+
+/* Theme-aware colors using CSS variables */
+@media (prefers-color-scheme: light) {
+  .swipe-button {
+    background-color: rgba(65, 140, 254, 0.15);
+    border-color: #418cfe;
+  }
+
+  .swipe-button-track {
+    background-color: #418cfe;
+  }
+
+  .swipe-button-text {
+    color: #418cfe;
+  }
+
+  .swipe-button-arrow {
+    color: #418cfe;
+  }
+
+  .swipe-button:hover:not(.swipe-button-disabled) {
+    border-color: #003182;
+    background-color: rgba(0, 49, 130, 0.15);
+  }
+
+  .swipe-button:hover:not(.swipe-button-disabled) .swipe-button-text,
+  .swipe-button:hover:not(.swipe-button-disabled) .swipe-button-arrow {
+    color: #003182;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .swipe-button {
+    background-color: rgba(65, 140, 254, 0.25);
+    border-color: #418cfe;
+  }
+
+  .swipe-button-track {
+    background-color: #418cfe;
+  }
+
+  .swipe-button-text {
+    color: #ffffff;
+  }
+
+  .swipe-button-arrow {
+    color: #ffffff;
+  }
+
+  .swipe-button:hover:not(.swipe-button-disabled) {
+    border-color: #418cfe;
+    background-color: rgba(65, 140, 254, 0.35);
+  }
+
+  .swipe-button:hover:not(.swipe-button-disabled) .swipe-button-text,
+  .swipe-button:hover:not(.swipe-button-disabled) .swipe-button-arrow {
+    color: #ffffff;
+  }
+}
+
+/* Danger variant styles */
+.swipe-button-danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  border-color: #dc3545;
+}
+
+.swipe-button-danger:hover:not(.swipe-button-disabled) {
+  border-color: #a71e2a;
+  background-color: rgba(167, 30, 42, 0.2);
+}
+
+.swipe-button-danger .swipe-button-track {
+  background-color: #dc3545;
+}
+
+.swipe-button-danger .swipe-button-text {
+  color: #dc3545;
+}
+
+.swipe-button-danger:hover:not(.swipe-button-disabled) .swipe-button-text {
+  color: #a71e2a;
+}
+
+.swipe-button-danger .swipe-button-arrow {
+  color: #dc3545;
+}
+
+.swipe-button-danger:hover:not(.swipe-button-disabled) .swipe-button-arrow {
+  color: #a71e2a;
+  transform: translateX(5px);
+}
+
+/* Danger variant - Light mode */
+@media (prefers-color-scheme: light) {
+  .swipe-button-danger {
+    background-color: rgba(220, 53, 69, 0.15);
+    border-color: #dc3545;
+  }
+
+  .swipe-button-danger .swipe-button-track {
+    background-color: #dc3545;
+  }
+
+  .swipe-button-danger .swipe-button-text {
+    color: #dc3545;
+  }
+
+  .swipe-button-danger .swipe-button-arrow {
+    color: #dc3545;
+  }
+
+  .swipe-button-danger:hover:not(.swipe-button-disabled) {
+    border-color: #a71e2a;
+    background-color: rgba(167, 30, 42, 0.15);
+  }
+
+  .swipe-button-danger:hover:not(.swipe-button-disabled) .swipe-button-text,
+  .swipe-button-danger:hover:not(.swipe-button-disabled) .swipe-button-arrow {
+    color: #a71e2a;
+  }
+}
+
+/* Danger variant - Dark mode */
+@media (prefers-color-scheme: dark) {
+  .swipe-button-danger {
+    background-color: rgba(220, 53, 69, 0.25);
+    border-color: #dc3545;
+  }
+
+  .swipe-button-danger .swipe-button-track {
+    background-color: #dc3545;
+  }
+
+  .swipe-button-danger .swipe-button-text {
+    color: #ffffff;
+  }
+
+  .swipe-button-danger .swipe-button-arrow {
+    color: #ffffff;
+  }
+
+  .swipe-button-danger:hover:not(.swipe-button-disabled) {
+    border-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.35);
+  }
+
+  .swipe-button-danger:hover:not(.swipe-button-disabled) .swipe-button-text,
+  .swipe-button-danger:hover:not(.swipe-button-disabled) .swipe-button-arrow {
+    color: #ffffff;
+  }
+}

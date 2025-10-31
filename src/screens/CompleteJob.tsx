@@ -18,7 +18,8 @@ import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
 import { getJobDetails } from "../utils/JobDataVal";
-// import SwipeButton from "../components/SwipeButton";
+import { voucherFileNameGenerator } from "../functions/voucher-file-name-generator";
+import SwipeButton from "../components/SwipeButton";
 
 interface PropsforLocation {
   dropOfLocation: string;
@@ -65,14 +66,16 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     }
   };
 
-  const uploadVoucherFile = async () => {
+  const uploadVoucherFile = async (jobId: string) => {
     if (!voucherFile) {
       throw new Error("Voucher file is required.");
     }
 
+    const fileName = voucherFileNameGenerator("123", jobId);
+
     const formData = new FormData();
     formData.append("file", voucherFile);
-    formData.append("fileName", "test-file");
+    formData.append("fileName", fileName);
 
     const response = await fetch("/api/upload-file", {
       method: "POST",
@@ -169,7 +172,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     setIsSubmitting(true);
 
     try {
-      await uploadVoucherFile();
+      await uploadVoucherFile(jobId);
       const res = await authenticate({
         token: jobId,
         actionType: "SAVE",
@@ -313,7 +316,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
       {/* <UploadImage /> */}
       {!showValidationPopup && (
         <>
-          <Popup
+          {/* <Popup
             triggerOnLoad={false}
             popTitle="Confirmation"
             PopUpButtonOpenText={showButtonSave}
@@ -329,17 +332,19 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
                 passegerNameInput: passegerNameInput,
               })
             }
-          />
-          {/* <SwipeButton
-            centerText={showButtonSave}
-            onSwipeRight={() =>
+          /> */}
+          <SwipeButton
+            text={showButtonSave}
+            onSwipeComplete={() =>
               handleAllowLocation({
                 dropOfLocation,
                 cityState,
                 passegerNameInput: passegerNameInput,
               })
             }
-          /> */}
+            disabled={isSubmitting}
+            loading={isSubmitting}
+          />
         </>
       )}
       {showValidationPopup && (
