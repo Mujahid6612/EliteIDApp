@@ -18,6 +18,7 @@ import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
 import { getJobDetails } from "../utils/JobDataVal";
+// import SwipeButton from "../components/SwipeButton";
 
 interface PropsforLocation {
   dropOfLocation: string;
@@ -311,23 +312,35 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
       )}
       {/* <UploadImage /> */}
       {!showValidationPopup && (
-        <Popup
-          triggerOnLoad={false}
-          popTitle="Confirmation"
-          PopUpButtonOpenText={showButtonSave}
-          popUpText="Are you sure ?"
-          PopUpButtonText="Yes"
-          popVariantButton="primary"
-          secondButtonText="No"
-          popupButtonRedClass="secondaryPopup"
-          functionpassed={() =>
-            handleAllowLocation({
-              dropOfLocation,
-              cityState,
-              passegerNameInput: passegerNameInput,
-            })
-          }
-        />
+        <>
+          <Popup
+            triggerOnLoad={false}
+            popTitle="Confirmation"
+            PopUpButtonOpenText={showButtonSave}
+            popUpText="Are you sure ?"
+            PopUpButtonText="Yes"
+            popVariantButton="primary"
+            secondButtonText="No"
+            popupButtonRedClass="secondaryPopup"
+            functionpassed={() =>
+              handleAllowLocation({
+                dropOfLocation,
+                cityState,
+                passegerNameInput: passegerNameInput,
+              })
+            }
+          />
+          {/* <SwipeButton
+            centerText={showButtonSave}
+            onSwipeRight={() =>
+              handleAllowLocation({
+                dropOfLocation,
+                cityState,
+                passegerNameInput: passegerNameInput,
+              })
+            }
+          /> */}
+        </>
       )}
       {showValidationPopup && (
         <Popup

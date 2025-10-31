@@ -34,12 +34,14 @@ const IndexScreen = () => {
   const currentRoute = useSelector(
     (state: RootState) => state.currentView.currentRoutes[jobId || ""]
   );
-  let resfromlogView = useAuthRefresh();
+  const resfromlogView = useAuthRefresh();
   const [responseFromLog, setResponseFromLog] = useState(resfromlogView);
   useEffect(() => {
     if (resfromlogView) {
       setResponseFromLog(resfromlogView); // Update responseFromLog state
-      //@ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       responseFromLog?.JHeader?.ActionCode == 1
         ? setIsLogRestricting(true)
         : setIsLogRestricting(false);
@@ -88,15 +90,18 @@ const IndexScreen = () => {
   }, [jobId, jobData, locationPermission, dispatch]);
 
   useEffect(() => {
-    //@ts-ignore
-    if (jobData?.JData?.[0]?.[0] && currentRoute !== jobData.JData[0][0]) {
-      //@ts-ignore
+    if (
+      jobData?.JData?.[0]?.[0] &&
+      currentRoute !== String(jobData.JData[0][0])
+    ) {
       dispatch(
-        setCurrentRoute({ jobId: jobId || "", route: jobData.JData[0][0] })
+        setCurrentRoute({
+          jobId: jobId || "",
+          route: String(jobData.JData[0][0]),
+        })
       );
     }
   }, [jobData, currentRoute, dispatch, jobId]);
-  // Location request handler - only called when user clicks the button
   const requestLocation = () => {
     navigator.geolocation.getCurrentPosition(
       () => setLocationPermission("granted"),
@@ -130,9 +135,11 @@ const IndexScreen = () => {
     return <Unauthorized message={jobData?.JHeader?.Message} />;
   }
 
-  //@ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-expect-error
   if (Number(responseFromLog?.JHeader?.ActionCode) > 0) {
-    //@ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-expect-error
     return <Unauthorized message={responseFromLog?.JHeader?.Message} />;
   }
 

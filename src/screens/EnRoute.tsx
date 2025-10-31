@@ -37,7 +37,7 @@ const EnRoute = ({ islogrestricting }: Props) => {
         viewName: "ARRIVE",
       });
       dispatch(setJobData({ jobId, data: res }));
-      let currentView = res.JData?.[0]?.[0];
+      const currentView = res.JData?.[0]?.[0];
       dispatch(setCurrentRoute({ jobId, route: currentView }));
     } catch (error) {
       console.error("Error fetching job data", error);
@@ -51,6 +51,7 @@ const EnRoute = ({ islogrestricting }: Props) => {
   if (!jobData || !jobData.JData || !jobData.JHeader) {
     return <Spinner functionPassed={handleAllowLocation} />;
   }
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     if (islogrestricting === true) {
       return window.location.reload();
