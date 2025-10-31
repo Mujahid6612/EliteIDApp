@@ -1,3 +1,13 @@
 {
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/"
+        }
+    ],
     "devCommand": "vite --port 3000"
 }
