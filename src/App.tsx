@@ -4,6 +4,7 @@ import './App.css';
 // Screens
 import IndexScreen from './screens/IndexScreen';
 import Unauthorized from './screens/Unauthorized';
+import VoucherList from './screens/VoucherList';
 
 /// before we are calling res in action we need to confirm the res status code and message before dispatching the action
 const App: React.FC = () => {
@@ -12,6 +13,7 @@ const App: React.FC = () => {
       <Routes>
 
         {/* Fallback to redirect to the appropriate screen based on job status */}
+        <Route path="/:jobId/vouchers" element={<VoucherList />} />
         <Route path="/:jobId/*" element={<IndexScreen />} />
         <Route path="/" element={<Unauthorized />} />
         <Route path="*" element={<Unauthorized />} />

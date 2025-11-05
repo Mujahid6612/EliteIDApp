@@ -7,7 +7,7 @@ import {
   LocationDetailsInput,
 } from "../components/LocationDetails";
 import Popup from "../components/Popup";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 //import UploadImage from "../components/UploadImage";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
@@ -30,6 +30,7 @@ interface PropsforLocation {
 const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
+  const navigate = useNavigate();
   const jobData = useSelector(
     (state: RootState) => state.auth.jobData[jobId || ""]
   );
@@ -49,6 +50,33 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
 
   // State for validation popup
   const [showValidationPopup, setShowValidationPopup] = useState(false);
+
+  // Check for selected voucher from voucher list
+  useEffect(() => {
+    const selectedVoucher = sessionStorage.getItem("selectedVoucher");
+    if (selectedVoucher) {
+      try {
+        const voucher = JSON.parse(selectedVoucher);
+        // Convert voucher URL to File object if possible, or store URL
+        // For now, we'll fetch the image and create a File object
+        fetch(voucher.url)
+          .then((res) => res.blob())
+          .then((blob) => {
+            const file = new File([blob], voucher.fileName, {
+              type: blob.type,
+            });
+            setVoucherFile(file);
+            sessionStorage.removeItem("selectedVoucher");
+          })
+          .catch((err) => {
+            console.error("Error loading voucher:", err);
+          });
+      } catch (err) {
+        console.error("Error parsing selected voucher:", err);
+        sessionStorage.removeItem("selectedVoucher");
+      }
+    }
+  }, []);
 
   const handleVoucherChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (isSubmitting) return;
@@ -89,6 +117,11 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
   };
 
   useEffect(() => {
+    // Only auto-fill if drop-off location is empty
+    if (dropOfLocation.trim()) {
+      return;
+    }
+
     const fetchCurrentLocation = async () => {
       if (!navigator.geolocation) {
         console.error("Geolocation is not supported by this browser.");
@@ -99,27 +132,56 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
         async (position) => {
           const { latitude, longitude } = position.coords;
 
-          // Use Google Maps Geocoding API for detailed address
+          // Try Google Maps Geocoding API first
+          const mapsApiKey = import.meta.env.VITE_API_MAPS_KEY;
+          if (mapsApiKey) {
+            try {
+              const response = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${mapsApiKey}`
+              );
+              const data = await response.json();
+
+              if (data.results && data.results.length > 0) {
+                const address = data.results[0].formatted_address;
+                setDropOfLocation(address);
+                return; // Success, exit early
+              }
+            } catch (error) {
+              console.error("Error fetching address from Google Maps:", error);
+              // Continue to fallback
+            }
+          }
+
+          // Fallback: Use OpenStreetMap Nominatim API (free, no API key needed)
           try {
             const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${
-                import.meta.env.VITE_API_MAPS_KEY
-              }`
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+              {
+                headers: {
+                  "User-Agent": "EliteIDApp", // Required by Nominatim
+                },
+              }
             );
             const data = await response.json();
 
-            if (data.results && data.results.length > 0) {
-              const address = data.results[0].formatted_address;
-              setDropOfLocation(address || "Enter Drop Off Location");
-            } else {
-              console.error("Failed to retrieve location details.");
+            if (data && data.display_name) {
+              setDropOfLocation(data.display_name);
+              return; // Success, exit early
             }
           } catch (error) {
-            console.error("Error fetching detailed address:", error);
+            console.error("Error fetching address from OpenStreetMap:", error);
           }
+
+          // If all geocoding fails, show a user-friendly message instead of coordinates
+          setDropOfLocation("Address not available. Please enter manually.");
         },
         (error) => {
           console.error("Error fetching location:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
         }
       );
     };
@@ -243,7 +305,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
         onPassengerNameChange={setPassengerNameInput}
       />
       <div className="ml-10 mt-4 location-container">
-        <p className="secoundaru-text ">Voucher Attachment:</p>
+        <p className="secoundaru-text mb-10">Voucher Attachment:</p>
         <div
           className="d-flex-sb mr-10"
           style={{ gap: "1rem", alignItems: "center" }}
@@ -251,7 +313,12 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           {!voucherFile && (
             <div
               className="d-flex-sb"
-              style={{ gap: "0.75rem", alignItems: "center", flexGrow: 1 }}
+              style={{
+                gap: "0.75rem",
+                alignItems: "center",
+                flexGrow: 1,
+                flexWrap: "wrap",
+              }}
             >
               <button
                 type="button"
@@ -281,14 +348,20 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
                 flexDirection: "column",
               }}
             >
-              <button
-                type="button"
-                onClick={handleRemoveVoucher}
-                disabled={isSubmitting}
-                style={{ width: "100%" }}
-              >
-                Remove and Re-select Voucher
-              </button>
+              <div style={{ display: "flex", gap: "0.5rem", width: "100%" }}>
+                <button
+                  type="button"
+                  onClick={handleRemoveVoucher}
+                  disabled={isSubmitting}
+                  className="button"
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#d93025",
+                  }}
+                >
+                  Remove and Re-select Voucher
+                </button>
+              </div>
               {/* Preview image of the voucher file */}
               <img
                 src={URL.createObjectURL(voucherFile)}
@@ -297,6 +370,25 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
               />
             </div>
           )}
+        </div>
+        <div
+          className="d-flex-sb"
+          style={{
+            gap: "0.75rem",
+            alignItems: "center",
+            flexGrow: 1,
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            className="button"
+            onClick={() => navigate(`/${jobId}/vouchers`)}
+            disabled={isSubmitting}
+            style={{ width: "98%" }}
+          >
+            View Uploaded Vouchers
+          </button>
         </div>
         {uploadError && (
           <p
