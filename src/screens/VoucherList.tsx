@@ -80,7 +80,8 @@ const VoucherList = () => {
       <div className="ml-10 mr-10">
         <ThemedText
           themeText="Select a voucher from the list below:"
-          classPassed="lefttext mb-20"
+          classPassed="lefttext"
+          style={{ marginBottom: "20px" }}
         />
 
         {error && (

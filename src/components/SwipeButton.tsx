@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import "./SwipeButton.css";
 
@@ -26,7 +26,6 @@ const SwipeButton = ({
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
-  const buttonRef = useRef<HTMLDivElement>(null);
 
   const handlers = useSwipeable({
     onSwiping: (eventData) => {
@@ -35,7 +34,10 @@ const SwipeButton = ({
       // Only allow right swipe
       if (eventData.dir === "Right") {
         setIsSwiping(true);
-        const buttonWidth = buttonRef.current?.offsetWidth || 400;
+        // Get button width from event target
+        const target = eventData.event.target as HTMLElement;
+        const buttonElement = target.closest('.swipe-button') as HTMLElement;
+        const buttonWidth = buttonElement?.offsetWidth || 400;
         const progress = Math.min(
           (eventData.deltaX / buttonWidth) * 100,
           100
@@ -55,7 +57,9 @@ const SwipeButton = ({
 
       // Calculate progress from eventData to avoid stale closure
       if (eventData.dir === "Right") {
-        const buttonWidth = buttonRef.current?.offsetWidth || 400;
+        const target = eventData.event.target as HTMLElement;
+        const buttonElement = target.closest('.swipe-button') as HTMLElement;
+        const buttonWidth = buttonElement?.offsetWidth || 400;
         const progress = Math.min(
           (eventData.deltaX / buttonWidth) * 100,
           100
@@ -88,7 +92,6 @@ const SwipeButton = ({
   return (
     <div className={`swipe-button-container ${className}`}>
       <div
-        ref={buttonRef}
         {...handlers}
         className={`swipe-button swipe-button-${type} ${
           disabled || loading ? "swipe-button-disabled" : ""
