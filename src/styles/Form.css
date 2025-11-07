@@ -77,6 +77,40 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
+.text-field-container {
+  margin: 5px 0;
+}
+
+.text-field-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.required-asterisk {
+  color: #d32f2f;
+}
+
+.error-message {
+  display: block;
+  font-size: 0.85rem;
+  color: #d32f2f;
+  margin-top: 5px;
+  text-align: left;
+}
+
+.error-field {
+  border-color: #d32f2f !important;
+}
+
+.error-field:focus {
+  border-color: #d32f2f !important;
+  outline-color: #d32f2f;
+}
+
 @media (max-width: 480px) {
   .form-container {
     padding: 15px;

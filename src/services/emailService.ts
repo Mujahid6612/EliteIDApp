@@ -9,43 +9,57 @@ interface BasicInfoData {
   color: string;
 }
 
-export const sendBasicInfoEmail = async (data: BasicInfoData): Promise<void> => {
-  const emailSubject = "New Driver Application - Basic Information";
-  
-  const emailBody = `
-New Driver Application - Basic Information
+interface BankInfoData {
+  accountName: string;
+  accountNumber: string;
+  routingNumber: string;
+  bankName: string;
+}
 
-Personal Information:
-- First Name: ${data.firstName}
-- Last Name: ${data.lastName}
-- Cell Phone: ${data.cellPhone}
-- Email: ${data.email}
+export const sendBasicInfoEmail = async (
+  data: BasicInfoData
+): Promise<void> => {
+  try {
+    const response = await fetch("/api/send-basic-info-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
-Vehicle Information:
-- Plate Number: ${data.plateNumber}
-- Make: ${data.make}
-- Model Year: ${data.modelYear}
-- Color: ${data.color}
-  `.trim();
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to send email");
+    }
 
-  // Create mailto link
-  // Note: This opens the user's email client with pre-filled information
-  // For production, consider implementing a backend API endpoint to send emails directly
-  const mailtoLink = `mailto:driver.relations@eliteny.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-  
-  // Open email client
-  window.location.href = mailtoLink;
-  
-  // Return a promise that resolves after a short delay to allow the email client to open
-  // In a production environment with a backend API, you would make an actual API call here:
-  // const response = await fetch('/api/send-email', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ to: 'driver.relations@eliteny.com', subject: emailSubject, body: emailBody })
-  // });
-  
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), 100);
-  });
+    const result = await response.json();
+    console.log("Email sent successfully:", result.messageId);
+  } catch (error) {
+    console.error("Error sending basic info email:", error);
+    throw error;
+  }
 };
 
+export const sendBankInfoEmail = async (data: BankInfoData): Promise<void> => {
+  try {
+    const response = await fetch("/api/send-bank-info-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to send email");
+    }
+
+    const result = await response.json();
+    console.log("Email sent successfully:", result.messageId);
+  } catch (error) {
+    console.error("Error sending bank info email:", error);
+    throw error;
+  }
+};
