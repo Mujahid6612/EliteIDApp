@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 import "./SwipeButton.css";
 
@@ -19,46 +19,57 @@ const SwipeButton = ({
   type = "default",
   loading = false,
 }: SwipeButtonProps) => {
+  // Ensure text includes "Swipe" if not already present
+  const displayText = text.toLowerCase().includes("swipe") 
+    ? text 
+    : `SWIPE TO ${text}`;
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
 
   const handlers = useSwipeable({
     onSwiping: (eventData) => {
-      if (disabled || loading) return;
+      if (disabled || loading || hasCompleted) return;
 
       // Only allow right swipe
       if (eventData.dir === "Right") {
         setIsSwiping(true);
+        // Get button width from event target
+        const target = eventData.event.target as HTMLElement;
+        const buttonElement = target.closest('.swipe-button') as HTMLElement;
+        const buttonWidth = buttonElement?.offsetWidth || 400;
         const progress = Math.min(
-          (eventData.deltaX /
-            (eventData.event.target as HTMLElement).offsetWidth) *
-            100,
+          (eventData.deltaX / buttonWidth) * 100,
           100
         );
         setSwipeProgress(progress);
       }
     },
     onSwiped: (eventData) => {
-      if (disabled || loading) return;
+      if (disabled || loading || hasCompleted) return;
 
       // Calculate progress from eventData to avoid stale closure
       if (eventData.dir === "Right") {
-        const element = eventData.event.target as HTMLElement;
+        const target = eventData.event.target as HTMLElement;
+        const buttonElement = target.closest('.swipe-button') as HTMLElement;
+        const buttonWidth = buttonElement?.offsetWidth || 400;
         const progress = Math.min(
-          (eventData.deltaX / element.offsetWidth) * 100,
+          (eventData.deltaX / buttonWidth) * 100,
           100
         );
 
-        // Complete if swiped right with sufficient distance (90% threshold)
-        if (progress >= 70) {
+        if (progress >= 60 && !hasCompleted) {
+          setHasCompleted(true);
           onSwipeComplete();
         } else {
-          // Reset progress if swipe didn't complete (user released before 90%)
+          // Reset progress if swipe didn't complete (user released before 50%)
           setSwipeProgress(0);
+          setHasCompleted(false);
         }
       } else {
         // Reset progress for non-right swipes
         setSwipeProgress(0);
+        setHasCompleted(false);
       }
 
       // Reset swiping state
@@ -67,9 +78,19 @@ const SwipeButton = ({
     trackMouse: true, // Enable mouse dragging
     trackTouch: true, // Enable touch swiping
     preventScrollOnSwipe: true,
+    delta: 10, // Minimum distance to trigger swipe (improves sensitivity)
   });
 
   const isIdle = !disabled && !loading && !isSwiping && swipeProgress === 0;
+
+
+  useEffect(() => {
+    if (hasCompleted && !loading && !isSwiping) {
+      setHasCompleted(false);
+      setSwipeProgress(0);
+      setIsSwiping(false);
+    }
+  }, [hasCompleted, loading]);
 
   return (
     <div className={`swipe-button-container ${className}`}>
@@ -97,8 +118,8 @@ const SwipeButton = ({
             </>
           ) : (
             <>
-              <span className="swipe-button-text">SWIPE TO {text}</span>
-              <span className={`swipe-button-arrow ${isIdle ? "swipe-arrow-pulse" : ""}`}>→</span>
+              <span className="swipe-button-text">{displayText}</span>
+              <span className="swipe-button-arrow">→</span>
             </>
           )}
         </div>

@@ -6,10 +6,11 @@ import { RootState } from "../store/store";
 import Unauthorized from "./Unauthorized";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const Unload = () => {
   const { jobId } = useParams<{ jobId: string }>();
+  const navigate = useNavigate();
   const jobData = useSelector(
     (state: RootState) => state.auth.jobData[jobId || ""]
   );
@@ -44,6 +45,20 @@ const Unload = () => {
           classPassed="centertext"
         />
         <div className="divider"></div>
+        {jobId && (
+          <button
+            type="button"
+            className="button"
+            onClick={() => navigate(`/${jobId}/vouchers`)}
+            style={{ 
+              padding: "10px 20px", 
+              fontSize: "0.9rem",
+              marginTop: "20px"
+            }}
+          >
+            View Uploaded Voucher
+          </button>
+        )}
       </div>
     </>
   );
