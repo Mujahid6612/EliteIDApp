@@ -72,11 +72,11 @@ const BankInfo = () => {
           return "Routing number must be exactly 9 digits";
         return "";
       }
-      case "bankName": {
-        if (!value.trim())
-          return "Bank name is required. Please enter a valid routing number.";
-        return "";
-      }
+    //   case "bankName": {
+    //     if (!value.trim())
+    //       return "Bank name is required. Please enter a valid routing number.";
+    //     return "";
+    //   }
       default:
         return "";
     }
@@ -260,7 +260,7 @@ const BankInfo = () => {
           )}
         </div>
 
-        <div className="read-only-field-container">
+        {/* <div className="read-only-field-container">
           <label className="read-only-label">
             Bank Name
             <span className="required-asterisk"> *</span>
@@ -282,7 +282,7 @@ const BankInfo = () => {
               {errors.bankName}
             </span>
           )}
-        </div>
+        </div> */}
 
         <ButtonsComponent
           buttonText={isSubmitting ? "Submitting..." : "Submit"}
