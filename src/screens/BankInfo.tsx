@@ -21,18 +21,29 @@ const BankInfo = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Load account name from basic info
-    const basicInfo = localStorage.getItem("basicInfo");
-    if (basicInfo) {
+    // Load saved bank info from localStorage if available
+    const savedBankInfo = localStorage.getItem("bankInfo");
+    if (savedBankInfo) {
       try {
-        const parsed = JSON.parse(basicInfo);
-        const fullName = `${parsed.firstName} ${parsed.lastName}`.trim();
-        setFormData((prev) => ({
-          ...prev,
-          accountName: fullName,
-        }));
+        const parsed = JSON.parse(savedBankInfo);
+        setFormData(parsed);
       } catch (error) {
-        console.error("Error parsing basic info:", error);
+        console.error("Error parsing saved bank info:", error);
+      }
+    } else {
+      // Load account name from basic info if bank info doesn't exist
+      const basicInfo = localStorage.getItem("basicInfo");
+      if (basicInfo) {
+        try {
+          const parsed = JSON.parse(basicInfo);
+          const fullName = `${parsed.firstName} ${parsed.lastName}`.trim();
+          setFormData((prev) => ({
+            ...prev,
+            accountName: fullName,
+          }));
+        } catch (error) {
+          console.error("Error parsing basic info:", error);
+        }
       }
     }
   }, []);
@@ -185,6 +196,8 @@ const BankInfo = () => {
     setIsSubmitting(true);
     try {
       await sendBankInfoEmail(formData);
+      // Store bank info in localStorage after successful submission
+      localStorage.setItem("bankInfo", JSON.stringify(formData));
       alert("Bank information submitted successfully!");
     } catch (error) {
       console.error("Error sending email:", error);

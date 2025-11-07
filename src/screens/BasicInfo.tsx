@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import TextField from "../components/TextField";
@@ -22,16 +22,31 @@ const BasicInfo = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  useEffect(() => {
+    // Load saved basic info from localStorage if available
+    const savedBasicInfo = localStorage.getItem("basicInfo");
+    if (savedBasicInfo) {
+      try {
+        const parsed = JSON.parse(savedBasicInfo);
+        setFormData(parsed);
+      } catch (error) {
+        console.error("Error parsing saved basic info:", error);
+      }
+    }
+  }, []);
+
   const validateField = (field: string, value: string): string => {
     switch (field) {
       case "firstName": {
         if (!value.trim()) return "First name is required";
-        if (value.trim().length < 2) return "First name must be at least 2 characters";
+        if (value.trim().length < 2)
+          return "First name must be at least 2 characters";
         return "";
       }
       case "lastName": {
         if (!value.trim()) return "Last name is required";
-        if (value.trim().length < 2) return "Last name must be at least 2 characters";
+        if (value.trim().length < 2)
+          return "Last name must be at least 2 characters";
         return "";
       }
       case "cellPhone": {
@@ -39,13 +54,15 @@ const BasicInfo = () => {
         const phoneRegex = /^[\d\s\-()]+$/;
         if (!phoneRegex.test(value)) return "Please enter a valid phone number";
         const digitsOnly = value.replace(/\D/g, "");
-        if (digitsOnly.length < 10) return "Phone number must contain at least 10 digits";
+        if (digitsOnly.length < 10)
+          return "Phone number must contain at least 10 digits";
         return "";
       }
       case "email": {
         if (!value.trim()) return "Email address is required";
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) return "Please enter a valid email address";
+        if (!emailRegex.test(value))
+          return "Please enter a valid email address";
         return "";
       }
       case "plateNumber": {
@@ -61,7 +78,9 @@ const BasicInfo = () => {
         const year = parseInt(value);
         const currentYear = new Date().getFullYear();
         if (isNaN(year) || year < 1900 || year > currentYear + 1) {
-          return `Please enter a valid year between 1900 and ${currentYear + 1}`;
+          return `Please enter a valid year between 1900 and ${
+            currentYear + 1
+          }`;
         }
         return "";
       }
@@ -81,7 +100,7 @@ const BasicInfo = () => {
         ...prev,
         [field]: value,
       }));
-      
+
       // Clear error when user starts typing
       if (errors[field]) {
         const error = validateField(field, value);
@@ -94,7 +113,10 @@ const BasicInfo = () => {
 
   const handleBlur = (field: string) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    const error = validateField(field, formData[field as keyof typeof formData]);
+    const error = validateField(
+      field,
+      formData[field as keyof typeof formData]
+    );
     setErrors((prev) => ({
       ...prev,
       [field]: error,
@@ -106,7 +128,10 @@ const BasicInfo = () => {
     let isValid = true;
 
     Object.keys(formData).forEach((field) => {
-      const error = validateField(field, formData[field as keyof typeof formData]);
+      const error = validateField(
+        field,
+        formData[field as keyof typeof formData]
+      );
       if (error) {
         newErrors[field] = error;
         isValid = false;
