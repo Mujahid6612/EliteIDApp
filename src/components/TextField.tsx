@@ -1,17 +1,32 @@
-
-
-
 interface TextFieldProps {
   placeHolderTextInput: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   valueTrue: boolean;
+  value?: string;
 }
 
-const TextField = ({ placeHolderTextInput, onChange, valueTrue }: TextFieldProps) => {
-  return valueTrue ? (
-    <input className="primary-text-field" value={valueTrue ? placeHolderTextInput : ""}  type="text" placeholder={placeHolderTextInput} onChange={onChange} />
+const TextField = ({
+  placeHolderTextInput,
+  onChange,
+  valueTrue,
+  value,
+}: TextFieldProps) => {
+  return valueTrue && value ? (
+    <input
+      className="primary-text-field"
+      value={value}
+      type="text"
+      placeholder={placeHolderTextInput}
+      onChange={onChange}
+    />
   ) : (
-    <input className="primary-text-field" type="text" placeholder={placeHolderTextInput} onChange={onChange} />
+    <input
+      className="primary-text-field"
+      type="text"
+      placeholder={placeHolderTextInput}
+      onChange={onChange}
+      value={value || ""}
+    />
   );
 };
 
