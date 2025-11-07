@@ -9,6 +9,15 @@ const Home = () => {
     <>
       <HeaderLayout screenName="Home" />
       <div className="home-container">
+        <div style={{ marginBottom: '20px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '10px' }}>
+          <h2 style={{ color: '#003182', marginBottom: '10px', fontSize: '1.3rem' }}>Welcome to Elite Independent Driver</h2>
+          <p style={{ color: 'rgba(0, 0, 0, 0.87)', lineHeight: '1.6', margin: 0 }}>
+            Join our network of independent drivers and start earning with Elite.
+            Complete the steps below to become part of our driver community and begin receiving job opportunities. 
+            Your information is secure and will be used solely for driver registration and payment processing.
+          </p>
+        </div>
+        
         <div 
           className="option-box" 
           onClick={() => navigate("/basic-info")}
