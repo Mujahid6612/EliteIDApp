@@ -9,10 +9,10 @@ export default async function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
 
   try {
-    const { accountName, accountNumber, routingNumber, bankName } = req.body;
+    const { accountName, phone, plateNumber, accountNumber, routingNumber } = req.body;
 
     // Validate required fields
-    if (!accountName || !accountNumber || !routingNumber || !bankName) {
+    if (!accountName || !phone || !plateNumber || !accountNumber || !routingNumber) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -46,9 +46,10 @@ New Driver Application - Bank Information
 
 Bank Account Details:
 - Account Name: ${accountName}
+- Phone: ${phone}
+- Plate Number: ${plateNumber}
 - Account Number: ${accountNumber}
 - Routing Number: ${routingNumber}
-- Bank Name: ${bankName}
     `.trim();
 
     // Send email

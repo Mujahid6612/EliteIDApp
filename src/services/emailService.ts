@@ -11,6 +11,8 @@ interface BasicInfoData {
 
 interface BankInfoData {
   accountName: string;
+  phone: string;
+  plateNumber: string;
   accountNumber: string;
   routingNumber: string;
   bankName: string;

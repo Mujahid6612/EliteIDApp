@@ -11,6 +11,8 @@ const BankInfo = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     accountName: "",
+    phone: "",
+    plateNumber: "",
     accountNumber: "",
     routingNumber: "",
     bankName: "",
@@ -56,6 +58,19 @@ const BankInfo = () => {
           return "Account name must be at least 2 characters";
         return "";
       }
+      case "phone": {
+        if (!value.trim()) return "Phone is required";
+        const phoneDigits = value.replace(/\D/g, "");
+        if (phoneDigits.length < 10)
+          return "Phone must contain at least 10 digits";
+        return "";
+      }
+      case "plateNumber": {
+        if (!value.trim()) return "Plate number is required";
+        if (value.trim().length < 2)
+          return "Plate number must be at least 2 characters";
+        return "";
+      }
       case "accountNumber": {
         if (!value.trim()) return "Account number is required";
         const accountDigits = value.replace(/\D/g, "");
@@ -72,11 +87,11 @@ const BankInfo = () => {
           return "Routing number must be exactly 9 digits";
         return "";
       }
-    //   case "bankName": {
-    //     if (!value.trim())
-    //       return "Bank name is required. Please enter a valid routing number.";
-    //     return "";
-    //   }
+      //   case "bankName": {
+      //     if (!value.trim())
+      //       return "Bank name is required. Please enter a valid routing number.";
+      //     return "";
+      //   }
       default:
         return "";
     }
@@ -231,6 +246,28 @@ const BankInfo = () => {
           value={formData.accountName}
           required
           error={touched.accountName ? errors.accountName : ""}
+        />
+
+        <TextField
+          label="Phone"
+          placeHolderTextInput="(555) 123-4567"
+          onChange={handleInputChange("phone")}
+          onBlur={handleBlur("phone")}
+          valueTrue={!!formData.phone}
+          value={formData.phone}
+          required
+          error={touched.phone ? errors.phone : ""}
+        />
+
+        <TextField
+          label="Plate Number"
+          placeHolderTextInput="ABC1234"
+          onChange={handleInputChange("plateNumber")}
+          onBlur={handleBlur("plateNumber")}
+          valueTrue={!!formData.plateNumber}
+          value={formData.plateNumber}
+          required
+          error={touched.plateNumber ? errors.plateNumber : ""}
         />
 
         <TextField
