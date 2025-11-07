@@ -50,7 +50,7 @@ const SwipeButton = ({
         );
 
         // Complete if swiped right with sufficient distance (90% threshold)
-        if (progress >= 90) {
+        if (progress >= 70) {
           onSwipeComplete();
         } else {
           // Reset progress if swipe didn't complete (user released before 90%)
@@ -69,13 +69,17 @@ const SwipeButton = ({
     preventScrollOnSwipe: true,
   });
 
+  const isIdle = !disabled && !loading && !isSwiping && swipeProgress === 0;
+
   return (
     <div className={`swipe-button-container ${className}`}>
       <div
         {...handlers}
         className={`swipe-button swipe-button-${type} ${
           disabled || loading ? "swipe-button-disabled" : ""
-        } ${loading ? "swipe-button-loading" : ""}`}
+        } ${loading ? "swipe-button-loading" : ""} ${
+          isIdle ? "swipe-button-idle" : ""
+        }`}
       >
         <div
           className="swipe-button-track"
@@ -84,6 +88,7 @@ const SwipeButton = ({
             transition: isSwiping ? "none" : "width 0.3s ease-out",
           }}
         />
+        {isIdle && <div className="swipe-button-shimmer"></div>}
         <div className="swipe-button-content">
           {loading ? (
             <>
@@ -92,8 +97,8 @@ const SwipeButton = ({
             </>
           ) : (
             <>
-              <span className="swipe-button-text">{text}</span>
-              <span className="swipe-button-arrow">→</span>
+              <span className="swipe-button-text">SWIPE TO {text}</span>
+              <span className={`swipe-button-arrow ${isIdle ? "swipe-arrow-pulse" : ""}`}>→</span>
             </>
           )}
         </div>

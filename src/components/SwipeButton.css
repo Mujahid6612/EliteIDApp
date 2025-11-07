@@ -23,17 +23,19 @@
 }
 
 .swipe-button-container {
-  width: 100%;
+  width: 84%;
   display: flex;
   justify-content: center;
   margin: 20px 0;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .swipe-button {
   position: relative;
   width: 100%;
   max-width: 400px;
-  height: 60px;
+  height: 54px;
   background-color: rgba(
     var(--swipe-primary-blue-rgb),
     var(--swipe-opacity-default)
@@ -83,10 +85,12 @@
 }
 
 .swipe-button-text {
-  font-size: 1.1rem;
+  font-size: 0.94rem;
   font-weight: 600;
   color: var(--swipe-primary-blue);
   transition: color 0.3s ease;
+  text-align: center;
+  line-height: 1.3;
 }
 
 .swipe-button:hover:not(.swipe-button-disabled) .swipe-button-text {
@@ -103,6 +107,61 @@
 .swipe-button:hover:not(.swipe-button-disabled) .swipe-button-arrow {
   color: var(--swipe-primary-blue-dark);
   transform: translateX(5px);
+}
+
+/* Idle state animations */
+.swipe-button-idle {
+  animation: idle-glow 2s ease-in-out infinite;
+}
+
+.swipe-arrow-pulse {
+  animation: arrow-pulse 1.5s ease-in-out infinite;
+}
+
+.swipe-button-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes arrow-pulse {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(8px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes idle-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(var(--swipe-primary-blue-rgb), 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(var(--swipe-primary-blue-rgb), 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
 }
 
 /* Theme-aware colors using CSS variables */
