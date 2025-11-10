@@ -7,7 +7,7 @@ import {
   LocationDetailsInput,
 } from "../components/LocationDetails";
 import Popup from "../components/Popup";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 //import UploadImage from "../components/UploadImage";
 import Unauthorized from "./Unauthorized";
 import { useSelector, useDispatch } from "react-redux";
@@ -30,7 +30,7 @@ interface PropsforLocation {
 const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const jobData = useSelector(
     (state: RootState) => state.auth.jobData[jobId || ""]
   );
@@ -374,7 +374,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
             </div>
           )}
         </div>
-        <div
+        {/* <div
           className="d-flex-sb"
           style={{
             gap: "0.75rem",
@@ -392,7 +392,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           >
             View Uploaded Vouchers
           </button>
-        </div>
+        </div> */}
         {uploadError && (
           <p
             className="error-text"
