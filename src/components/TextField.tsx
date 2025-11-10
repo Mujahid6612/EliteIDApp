@@ -1,3 +1,5 @@
+import React from "react";
+
 interface TextFieldProps {
   placeHolderTextInput: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -14,37 +16,41 @@ const TextField = ({
   placeHolderTextInput,
   onChange,
   onBlur,
-  valueTrue,
   value,
   label,
   error,
   required = false,
   type = "text",
 }: TextFieldProps) => {
+  const [isFocused, setIsFocused] = React.useState(false);
   const fieldId = label ? label.toLowerCase().replace(/\s+/g, "-") : undefined;
-  const inputClassName = error ? "primary-text-field error-field" : "primary-text-field";
+  const hasValue = !!(value && value.trim());
   
-  const inputField = valueTrue && value ? (
+  const inputClassName = error 
+    ? "primary-text-field error-field" 
+    : "primary-text-field";
+  
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+  
+  const handleBlurInternal = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(false);
+    if (onBlur) {
+      onBlur(e);
+    }
+  };
+  
+  const inputField = (
     <input
+      autoComplete="off"
       className={inputClassName}
-      value={value}
-      type={type}
-      placeholder={placeHolderTextInput}
-      onChange={onChange}
-      onBlur={onBlur}
-      id={fieldId}
-      required={required}
-      aria-invalid={!!error}
-      aria-describedby={error ? `${fieldId}-error` : undefined}
-    />
-  ) : (
-    <input
-      className={inputClassName}
-      type={type}
-      placeholder={placeHolderTextInput}
-      onChange={onChange}
-      onBlur={onBlur}
       value={value || ""}
+      type={type}
+      placeholder={hasValue ? placeHolderTextInput : ""}
+      onChange={onChange}
+      onFocus={handleFocus}
+      onBlur={handleBlurInternal}
       id={fieldId}
       required={required}
       aria-invalid={!!error}
@@ -54,12 +60,12 @@ const TextField = ({
 
   if (label) {
     return (
-      <div className="text-field-container">
-        <label className="text-field-label" htmlFor={fieldId}>
+      <div className={`text-field-container outlined-field ${hasValue || isFocused ? "has-value" : ""} ${error ? "has-error" : ""} ${isFocused ? "is-focused" : ""}`}>
+        {inputField}
+        <label className="outlined-label" htmlFor={fieldId}>
           {label}
           {required && <span className="required-asterisk"> *</span>}
         </label>
-        {inputField}
         {error && (
           <span className="error-message" id={`${fieldId}-error`} role="alert">
             {error}

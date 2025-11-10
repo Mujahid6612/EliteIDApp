@@ -21,6 +21,8 @@ const BasicInfo = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [hasSavedData, setHasSavedData] = useState(false);
 
   useEffect(() => {
     // Load saved basic info from localStorage if available
@@ -28,10 +30,23 @@ const BasicInfo = () => {
     if (savedBasicInfo) {
       try {
         const parsed = JSON.parse(savedBasicInfo);
-        setFormData(parsed);
+        // Check if parsed data has any meaningful values
+        const hasData = Object.values(parsed).some(
+          (value) => value && String(value).trim() !== ""
+        );
+        if (hasData) {
+          setFormData(parsed);
+          setHasSavedData(true);
+          setIsEditMode(false);
+        } else {
+          setIsEditMode(true);
+        }
       } catch (error) {
         console.error("Error parsing saved basic info:", error);
+        setIsEditMode(true);
       }
+    } else {
+      setIsEditMode(true);
     }
   }, []);
 
@@ -74,7 +89,7 @@ const BasicInfo = () => {
         return "";
       }
       case "modelYear": {
-        if (!value.trim()) return "Model year is required";
+        if (!value.trim()) return "Year is required";
         const year = parseInt(value);
         const currentYear = new Date().getFullYear();
         if (isNaN(year) || year < 1900 || year > currentYear + 1) {
@@ -155,6 +170,8 @@ const BasicInfo = () => {
       await sendBasicInfoEmail(formData);
       // Store form data in localStorage for use in bank info page
       localStorage.setItem("basicInfo", JSON.stringify(formData));
+      setHasSavedData(true);
+      setIsEditMode(false);
       navigate("/bank-info");
     } catch (error) {
       console.error("Error sending email:", error);
@@ -162,6 +179,65 @@ const BasicInfo = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditMode(true);
+  };
+
+  const renderDataTable = () => {
+    const dataRows = [
+      { label: "First Name", value: formData.firstName },
+      { label: "Last Name", value: formData.lastName },
+      { label: "Cell Phone", value: formData.cellPhone },
+      { label: "Email", value: formData.email },
+      { label: "Plate Number", value: formData.plateNumber },
+      { label: "Make", value: formData.make },
+      { label: "Year", value: formData.modelYear },
+      { label: "Color", value: formData.color },
+    ];
+
+    return (
+      <div className="data-table-container">
+        <div className="data-table-header">
+          <h2 className="form-section-title">Saved Basic Information</h2>
+          <button
+            className="edit-icon-button"
+            onClick={handleEdit}
+            aria-label="Edit information"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                fill="#418cfe"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="data-table">
+          {dataRows.map((row, index) => (
+            <div key={index} className="data-table-row">
+              <div className="data-table-label">{row.label}</div>
+              <div className="data-table-value">{row.value || "—"}</div>
+            </div>
+          ))}
+        </div>
+        <div className="data-table-actions">
+          <ButtonsComponent
+            buttonText="Continue to Bank Info"
+            buttonVariant="primary"
+            functionpassed={() => navigate("/bank-info")}
+            buttonWidth="100%"
+          />
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -175,7 +251,11 @@ const BasicInfo = () => {
         >
           ← Back
         </button>
-        <h2 className="form-section-title">Personal Info</h2>
+        {hasSavedData && !isEditMode ? (
+          renderDataTable()
+        ) : (
+          <>
+            <h2 className="form-section-title">Personal Info</h2>
         <TextField
           label="First Name"
           placeHolderTextInput="John"
@@ -239,26 +319,32 @@ const BasicInfo = () => {
           required
           error={touched.make ? errors.make : ""}
         />
-        <TextField
-          label="Model Year"
-          placeHolderTextInput="2022"
-          onChange={handleInputChange("modelYear")}
-          onBlur={handleBlur("modelYear")}
-          valueTrue={!!formData.modelYear}
-          value={formData.modelYear}
-          required
-          error={touched.modelYear ? errors.modelYear : ""}
-        />
-        <TextField
-          label="Color"
-          placeHolderTextInput="Blue"
-          onChange={handleInputChange("color")}
-          onBlur={handleBlur("color")}
-          valueTrue={!!formData.color}
-          value={formData.color}
-          required
-          error={touched.color ? errors.color : ""}
-        />
+        <div className="row-fields">
+          <div className="field-model-year">
+            <TextField
+              label="Year"
+              placeHolderTextInput="2022"
+              onChange={handleInputChange("modelYear")}
+              onBlur={handleBlur("modelYear")}
+              valueTrue={!!formData.modelYear}
+              value={formData.modelYear}
+              required
+              error={touched.modelYear ? errors.modelYear : ""}
+            />
+          </div>
+          <div className="field-color">
+            <TextField
+              label="Color"
+              placeHolderTextInput="Blue"
+              onChange={handleInputChange("color")}
+              onBlur={handleBlur("color")}
+              valueTrue={!!formData.color}
+              value={formData.color}
+              required
+              error={touched.color ? errors.color : ""}
+            />
+          </div>
+        </div>
 
         <ButtonsComponent
           buttonText={isSubmitting ? "Submitting..." : "Submit"}
@@ -266,6 +352,8 @@ const BasicInfo = () => {
           functionpassed={handleSubmit}
           buttonWidth="100%"
         />
+          </>
+        )}
       </div>
     </>
   );

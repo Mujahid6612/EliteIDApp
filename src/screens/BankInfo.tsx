@@ -87,11 +87,10 @@ const BankInfo = () => {
           return "Routing number must be exactly 9 digits";
         return "";
       }
-      //   case "bankName": {
-      //     if (!value.trim())
-      //       return "Bank name is required. Please enter a valid routing number.";
-      //     return "";
-      //   }
+      case "bankName": {
+        if (!value.trim()) return "Bank name is required";
+        return "";
+      }
       default:
         return "";
     }
@@ -122,7 +121,7 @@ const BankInfo = () => {
     setFormData((prev) => ({
       ...prev,
       routingNumber,
-      bankName: "", // Clear bank name when routing number changes
+      // Don't clear bank name - allow user to keep manually entered value
     }));
 
     // Clear routing number error when user starts typing
@@ -134,35 +133,31 @@ const BankInfo = () => {
       }));
     }
 
-    // Fetch bank name when routing number is 9 digits
+    // Fetch bank name when routing number is 9 digits (but don't override if user already entered it)
     if (routingNumber.replace(/\D/g, "").length === 9) {
       setIsLoadingBankName(true);
-      setTouched((prev) => ({ ...prev, bankName: true }));
       try {
         const bankName = await getBankNameFromRouting(
           routingNumber.replace(/\D/g, "")
         );
-        setFormData((prev) => ({
-          ...prev,
-          bankName: bankName || "",
-        }));
-        // Validate bank name after fetching
-        const bankNameError = validateField("bankName", bankName || "");
+        // Only auto-fill if bank name is empty
+        setFormData((prev) => {
+          if (bankName && !prev.bankName.trim()) {
+            return {
+              ...prev,
+              bankName: bankName || "",
+            };
+          }
+          return prev;
+        });
+        // Clear any previous errors
         setErrors((prev) => ({
-          ...prev,
-          bankName: bankNameError,
-        }));
-      } catch (error) {
-        console.error("Error fetching bank name:", error);
-        setFormData((prev) => ({
           ...prev,
           bankName: "",
         }));
-        setErrors((prev) => ({
-          ...prev,
-          bankName:
-            "Unable to verify routing number. Please check and try again.",
-        }));
+      } catch (error) {
+        console.error("Error fetching bank name:", error);
+        // Don't set error - allow user to enter manually
       } finally {
         setIsLoadingBankName(false);
       }
@@ -297,29 +292,16 @@ const BankInfo = () => {
           )}
         </div>
 
-        {/* <div className="read-only-field-container">
-          <label className="read-only-label">
-            Bank Name
-            <span className="required-asterisk"> *</span>
-          </label>
-          <input
-            className={`primary-text-field read-only-field ${
-              errors.bankName ? "error-field" : ""
-            }`}
-            type="text"
-            value={formData.bankName || ""}
-            readOnly
-            placeholder="Bank name will appear here"
-            required
-            aria-invalid={!!errors.bankName}
-            aria-describedby={errors.bankName ? "bank-name-error" : undefined}
-          />
-          {touched.bankName && errors.bankName && (
-            <span className="error-message" id="bank-name-error" role="alert">
-              {errors.bankName}
-            </span>
-          )}
-        </div> */}
+        <TextField
+          label="Bank Name"
+          placeHolderTextInput="Enter bank name"
+          onChange={handleInputChange("bankName")}
+          onBlur={handleBlur("bankName")}
+          valueTrue={!!formData.bankName}
+          value={formData.bankName}
+          required
+          error={touched.bankName ? errors.bankName : ""}
+        />
 
         <ButtonsComponent
           buttonText={isSubmitting ? "Submitting..." : "Submit"}

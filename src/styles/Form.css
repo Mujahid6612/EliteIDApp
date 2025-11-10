@@ -79,6 +79,7 @@
 
 .text-field-container {
   margin: 5px 0;
+  position: relative;
 }
 
 .text-field-label {
@@ -88,6 +89,78 @@
   color: rgba(0, 0, 0, 0.87);
   margin-bottom: 8px;
   text-align: left;
+}
+
+/* Material UI Outlined Style */
+.outlined-field {
+  position: relative;
+  margin: 20px 0;
+}
+
+.outlined-field .primary-text-field {
+  padding: 14px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  border-radius: 4px;
+  background-color: transparent;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, border-width 0.2s ease, padding 0.2s ease;
+  outline: none;
+  margin: 0;
+}
+
+.outlined-field .primary-text-field:focus {
+  border-color: #418cfe;
+  border-width: 2px;
+  padding: 13px 11px; /* Adjust padding to account for thicker border */
+}
+
+.outlined-field .primary-text-field:focus + .outlined-label,
+.outlined-field.has-value .outlined-label {
+  color: #418cfe;
+}
+
+.outlined-label {
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.6);
+  background-color: white;
+  padding: 0 4px;
+  margin: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.0, 0, 0.2, 1);
+  transform-origin: left top;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.outlined-field .primary-text-field:focus + .outlined-label,
+.outlined-field.has-value .outlined-label,
+.outlined-field.is-focused .outlined-label {
+  transform: translateY(-22px) scale(0.75);
+  font-size: 0.875rem;
+}
+
+.outlined-field.has-value:not(.is-focused) .outlined-label {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.outlined-field.has-error .primary-text-field {
+  border-color: #d32f2f;
+}
+
+.outlined-field.has-error .primary-text-field:focus {
+  border-color: #d32f2f;
+}
+
+.outlined-field.has-error .outlined-label {
+  color: #d32f2f;
+}
+
+.outlined-field.has-error .primary-text-field:focus + .outlined-label,
+.outlined-field.has-error.has-value .outlined-label {
+  color: #d32f2f;
 }
 
 .required-asterisk {
@@ -111,6 +184,93 @@
   outline-color: #d32f2f;
 }
 
+.row-fields {
+  display: flex;
+  margin-top: -20px;
+}
+
+.field-model-year {
+  min-width: 0;
+  width: 35%;
+}
+
+.field-color {
+  min-width: 0;
+  width: 65%;
+  margin-left: 10px;
+}
+
+/* Data Table Styles */
+.data-table-container {
+  margin-top: 10px;
+}
+
+.data-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.edit-icon-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.edit-icon-button:active {
+  background-color: rgba(65, 140, 254, 0.1);
+}
+
+.edit-icon-button svg {
+  display: block;
+}
+
+.data-table {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.data-table-row {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  gap: 6px;
+}
+
+.data-table-row:last-child {
+  border-bottom: none;
+}
+
+.data-table-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.data-table-value {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.87);
+  word-break: break-word;
+  padding-top: 4px;
+}
+
+.data-table-actions {
+  margin-top: 20px;
+}
+
 @media (max-width: 480px) {
   .form-container {
     padding: 15px;
@@ -123,6 +283,22 @@
 
   .form-description {
     font-size: 0.9rem;
+  }
+
+  .data-table-header {
+    margin-bottom: 15px;
+  }
+
+  .data-table-row {
+    padding: 12px;
+  }
+
+  .data-table-label {
+    font-size: 0.8rem;
+  }
+
+  .data-table-value {
+    font-size: 0.95rem;
   }
 }
 

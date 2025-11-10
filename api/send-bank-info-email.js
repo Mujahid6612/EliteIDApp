@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     });
 
     // Email content
-    const emailSubject = "New Driver Application - Bank Information";
+    const emailSubject = "Driver provided Bank info";
     const emailBody = `
 New Driver Application - Bank Information
 

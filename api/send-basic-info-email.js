@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     });
 
     // Email content
-    const emailSubject = "New Driver Application - Basic Information";
+    const emailSubject = "Driver submitted basic info";
     const emailBody = `
 New Driver Application - Basic Information
 

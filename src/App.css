@@ -24,11 +24,11 @@
 }
 
 body {
-  background-color: #f0f0f0;
+  background-color: #fff;
 }
 
 input {
-  background-color: #f0f0f0 !important;
+  background-color: #fff !important;
   border: 1px solid rgb(143, 143, 143);
   color: rgba(0, 0, 0, 0.87);
 }
