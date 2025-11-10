@@ -172,28 +172,9 @@ const BasicInfo = () => {
       localStorage.setItem("basicInfo", JSON.stringify(formData));
       setHasSavedData(true);
       setIsEditMode(false);
-      
-      // Check if bank info is already submitted
-      const savedBankInfo = localStorage.getItem("bankInfo");
-      if (savedBankInfo) {
-        try {
-          const parsed = JSON.parse(savedBankInfo);
-          // Check if bank info has meaningful data
-          const hasBankData = Object.values(parsed).some(
-            (value) => value && String(value).trim() !== ""
-          );
-          if (hasBankData) {
-            // Both forms are submitted, navigate to success screen
-            navigate("/success");
-            return;
-          }
-        } catch (error) {
-          console.error("Error parsing saved bank info:", error);
-        }
-      }
-      
+
       // If bank info is not submitted, navigate to bank info form
-      navigate("/bank-info");
+      navigate("/success");
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to submit. Please try again.");
@@ -249,14 +230,6 @@ const BasicInfo = () => {
             </div>
           ))}
         </div>
-        <div className="data-table-actions">
-          <ButtonsComponent
-            buttonText="Continue to Bank Info"
-            buttonVariant="primary"
-            functionpassed={() => navigate("/bank-info")}
-            buttonWidth="100%"
-          />
-        </div>
       </div>
     );
   };
@@ -270,109 +243,110 @@ const BasicInfo = () => {
           onClick={() => navigate("/")}
           aria-label="Go back"
         >
-          ← Back
+          <span className="back-arrow">←</span>
+          <span className="back-text">Back</span>
         </button>
         {hasSavedData && !isEditMode ? (
           renderDataTable()
         ) : (
           <>
             <h2 className="form-section-title">Personal Info</h2>
-        <TextField
-          label="First Name"
-          placeHolderTextInput="John"
-          onChange={handleInputChange("firstName")}
-          onBlur={handleBlur("firstName")}
-          valueTrue={!!formData.firstName}
-          value={formData.firstName}
-          required
-          error={touched.firstName ? errors.firstName : ""}
-        />
-        <TextField
-          label="Last Name"
-          placeHolderTextInput="Smith"
-          onChange={handleInputChange("lastName")}
-          onBlur={handleBlur("lastName")}
-          valueTrue={!!formData.lastName}
-          value={formData.lastName}
-          required
-          error={touched.lastName ? errors.lastName : ""}
-        />
-        <TextField
-          label="Cell Phone Number"
-          placeHolderTextInput="(212) 555-1234"
-          onChange={handleInputChange("cellPhone")}
-          onBlur={handleBlur("cellPhone")}
-          valueTrue={!!formData.cellPhone}
-          value={formData.cellPhone}
-          required
-          error={touched.cellPhone ? errors.cellPhone : ""}
-        />
-        <TextField
-          label="Email Address"
-          placeHolderTextInput="john.smith@email.com"
-          onChange={handleInputChange("email")}
-          onBlur={handleBlur("email")}
-          valueTrue={!!formData.email}
-          value={formData.email}
-          type="email"
-          required
-          error={touched.email ? errors.email : ""}
-        />
-
-        <h2 className="form-section-title">Vehicle Info</h2>
-        <TextField
-          label="Plate Number"
-          placeHolderTextInput="ABC-1234"
-          onChange={handleInputChange("plateNumber")}
-          onBlur={handleBlur("plateNumber")}
-          valueTrue={!!formData.plateNumber}
-          value={formData.plateNumber}
-          required
-          error={touched.plateNumber ? errors.plateNumber : ""}
-        />
-        <TextField
-          label="Make"
-          placeHolderTextInput="Toyota"
-          onChange={handleInputChange("make")}
-          onBlur={handleBlur("make")}
-          valueTrue={!!formData.make}
-          value={formData.make}
-          required
-          error={touched.make ? errors.make : ""}
-        />
-        <div className="row-fields">
-          <div className="field-model-year">
             <TextField
-              label="Year"
-              placeHolderTextInput="2022"
-              onChange={handleInputChange("modelYear")}
-              onBlur={handleBlur("modelYear")}
-              valueTrue={!!formData.modelYear}
-              value={formData.modelYear}
+              label="First Name"
+              placeHolderTextInput="John"
+              onChange={handleInputChange("firstName")}
+              onBlur={handleBlur("firstName")}
+              valueTrue={!!formData.firstName}
+              value={formData.firstName}
               required
-              error={touched.modelYear ? errors.modelYear : ""}
+              error={touched.firstName ? errors.firstName : ""}
             />
-          </div>
-          <div className="field-color">
             <TextField
-              label="Color"
-              placeHolderTextInput="Blue"
-              onChange={handleInputChange("color")}
-              onBlur={handleBlur("color")}
-              valueTrue={!!formData.color}
-              value={formData.color}
+              label="Last Name"
+              placeHolderTextInput="Smith"
+              onChange={handleInputChange("lastName")}
+              onBlur={handleBlur("lastName")}
+              valueTrue={!!formData.lastName}
+              value={formData.lastName}
               required
-              error={touched.color ? errors.color : ""}
+              error={touched.lastName ? errors.lastName : ""}
             />
-          </div>
-        </div>
+            <TextField
+              label="Cell Phone Number"
+              placeHolderTextInput="(212) 555-1234"
+              onChange={handleInputChange("cellPhone")}
+              onBlur={handleBlur("cellPhone")}
+              valueTrue={!!formData.cellPhone}
+              value={formData.cellPhone}
+              required
+              error={touched.cellPhone ? errors.cellPhone : ""}
+            />
+            <TextField
+              label="Email Address"
+              placeHolderTextInput="john.smith@email.com"
+              onChange={handleInputChange("email")}
+              onBlur={handleBlur("email")}
+              valueTrue={!!formData.email}
+              value={formData.email}
+              type="email"
+              required
+              error={touched.email ? errors.email : ""}
+            />
 
-        <ButtonsComponent
-          buttonText={isSubmitting ? "Submitting..." : "Submit"}
-          buttonVariant="primary"
-          functionpassed={handleSubmit}
-          buttonWidth="100%"
-        />
+            <h2 className="form-section-title">Vehicle Info</h2>
+            <TextField
+              label="Plate Number"
+              placeHolderTextInput="ABC-1234"
+              onChange={handleInputChange("plateNumber")}
+              onBlur={handleBlur("plateNumber")}
+              valueTrue={!!formData.plateNumber}
+              value={formData.plateNumber}
+              required
+              error={touched.plateNumber ? errors.plateNumber : ""}
+            />
+            <TextField
+              label="Make"
+              placeHolderTextInput="Toyota"
+              onChange={handleInputChange("make")}
+              onBlur={handleBlur("make")}
+              valueTrue={!!formData.make}
+              value={formData.make}
+              required
+              error={touched.make ? errors.make : ""}
+            />
+            <div className="row-fields">
+              <div className="field-model-year">
+                <TextField
+                  label="Year"
+                  placeHolderTextInput="2022"
+                  onChange={handleInputChange("modelYear")}
+                  onBlur={handleBlur("modelYear")}
+                  valueTrue={!!formData.modelYear}
+                  value={formData.modelYear}
+                  required
+                  error={touched.modelYear ? errors.modelYear : ""}
+                />
+              </div>
+              <div className="field-color">
+                <TextField
+                  label="Color"
+                  placeHolderTextInput="Blue"
+                  onChange={handleInputChange("color")}
+                  onBlur={handleBlur("color")}
+                  valueTrue={!!formData.color}
+                  value={formData.color}
+                  required
+                  error={touched.color ? errors.color : ""}
+                />
+              </div>
+            </div>
+
+            <ButtonsComponent
+              buttonText={isSubmitting ? "Submitting..." : "Submit"}
+              buttonVariant="primary"
+              functionpassed={handleSubmit}
+              buttonWidth="100%"
+            />
           </>
         )}
       </div>

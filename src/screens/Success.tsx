@@ -1,9 +1,32 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import "../styles/Form.css";
+import "../styles/Home.css";
 
 const Success = () => {
   const navigate = useNavigate();
+  const [hasBankInfo, setHasBankInfo] = useState(false);
+
+  useEffect(() => {
+    // Check if bank info exists in localStorage
+    const savedBankInfo = localStorage.getItem("bankInfo");
+    if (savedBankInfo) {
+      try {
+        const parsed = JSON.parse(savedBankInfo);
+        // Check if bank info has meaningful data
+        const hasData = Object.values(parsed).some(
+          (value) => value && String(value).trim() !== ""
+        );
+        setHasBankInfo(hasData);
+      } catch (error) {
+        console.error("Error parsing saved bank info:", error);
+        setHasBankInfo(false);
+      }
+    } else {
+      setHasBankInfo(false);
+    }
+  }, []);
 
   return (
     <>
@@ -28,6 +51,20 @@ const Success = () => {
           <p className="success-message">
             Someone from driver relations will contact you soon.
           </p>
+          
+          {!hasBankInfo && (
+            <div 
+              className="option-box" 
+              onClick={() => navigate("/bank-info")}
+              style={{ marginTop: "30px" }}
+            >
+              <h2 className="option-title">Enter your bank details</h2>
+              <p className="option-description">
+                To get paid the next day, please provide your bank information.
+              </p>
+            </div>
+          )}
+          
           <button
             className="back-button"
             onClick={() => navigate("/")}

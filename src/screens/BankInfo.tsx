@@ -21,8 +21,35 @@ const BankInfo = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoadingBankName, setIsLoadingBankName] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [basicInfo, setBasicInfo] = useState<{
+    firstName?: string;
+    lastName?: string;
+    cellPhone?: string;
+    email?: string;
+    plateNumber?: string;
+    make?: string;
+    modelYear?: string;
+    color?: string;
+  } | null>(null);
 
   useEffect(() => {
+    // Load basic info from localStorage
+    const savedBasicInfo = localStorage.getItem("basicInfo");
+    if (savedBasicInfo) {
+      try {
+        const parsed = JSON.parse(savedBasicInfo);
+        // Check if parsed data has any meaningful values
+        const hasData = Object.values(parsed).some(
+          (value) => value && String(value).trim() !== ""
+        );
+        if (hasData) {
+          setBasicInfo(parsed);
+        }
+      } catch (error) {
+        console.error("Error parsing saved basic info:", error);
+      }
+    }
+
     // Load saved bank info from localStorage if available
     const savedBankInfo = localStorage.getItem("bankInfo");
     if (savedBankInfo) {
@@ -33,15 +60,16 @@ const BankInfo = () => {
         console.error("Error parsing saved bank info:", error);
       }
     } else {
-      // Load account name from basic info if bank info doesn't exist
-      const basicInfo = localStorage.getItem("basicInfo");
-      if (basicInfo) {
+      // Load account name, phone, and plate number from basic info if bank info doesn't exist
+      if (savedBasicInfo) {
         try {
-          const parsed = JSON.parse(basicInfo);
+          const parsed = JSON.parse(savedBasicInfo);
           const fullName = `${parsed.firstName} ${parsed.lastName}`.trim();
           setFormData((prev) => ({
             ...prev,
             accountName: fullName,
+            phone: parsed.cellPhone || "",
+            plateNumber: parsed.plateNumber || "",
           }));
         } catch (error) {
           console.error("Error parsing basic info:", error);
@@ -59,16 +87,22 @@ const BankInfo = () => {
         return "";
       }
       case "phone": {
-        if (!value.trim()) return "Phone is required";
-        const phoneDigits = value.replace(/\D/g, "");
-        if (phoneDigits.length < 10)
-          return "Phone must contain at least 10 digits";
+        // Only validate phone if basic info doesn't exist
+        if (!basicInfo) {
+          if (!value.trim()) return "Phone is required";
+          const phoneDigits = value.replace(/\D/g, "");
+          if (phoneDigits.length < 10)
+            return "Phone must contain at least 10 digits";
+        }
         return "";
       }
       case "plateNumber": {
-        if (!value.trim()) return "Plate number is required";
-        if (value.trim().length < 2)
-          return "Plate number must be at least 2 characters";
+        // Only validate plate number if basic info doesn't exist
+        if (!basicInfo) {
+          if (!value.trim()) return "Plate number is required";
+          if (value.trim().length < 2)
+            return "Plate number must be at least 2 characters";
+        }
         return "";
       }
       case "accountNumber": {
@@ -176,14 +210,26 @@ const BankInfo = () => {
     }));
   };
 
-  const validateForm = (): boolean => {
+  const handleSubmit = async () => {
+    // Prepare submission data - use values from basicInfo if available
+    const submissionData = { ...formData };
+    if (basicInfo) {
+      if (basicInfo.cellPhone) {
+        submissionData.phone = basicInfo.cellPhone;
+      }
+      if (basicInfo.plateNumber) {
+        submissionData.plateNumber = basicInfo.plateNumber;
+      }
+    }
+
+    // Validate with the submission data
     const newErrors: Record<string, string> = {};
     let isValid = true;
 
-    Object.keys(formData).forEach((field) => {
+    Object.keys(submissionData).forEach((field) => {
       const error = validateField(
         field,
-        formData[field as keyof typeof formData]
+        submissionData[field as keyof typeof submissionData]
       );
       if (error) {
         newErrors[field] = error;
@@ -191,24 +237,23 @@ const BankInfo = () => {
       }
     });
 
-    setErrors(newErrors);
-    setTouched(
-      Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {})
-    );
-    return isValid;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) {
+    if (!isValid) {
+      setErrors(newErrors);
+      setTouched(
+        Object.keys(submissionData).reduce(
+          (acc, key) => ({ ...acc, [key]: true }),
+          {}
+        )
+      );
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await sendBankInfoEmail(formData);
+      await sendBankInfoEmail(submissionData);
       // Store bank info in localStorage after successful submission
-      localStorage.setItem("bankInfo", JSON.stringify(formData));
-      
+      localStorage.setItem("bankInfo", JSON.stringify(submissionData));
+
       // Check if basic info is already submitted
       const savedBasicInfo = localStorage.getItem("basicInfo");
       if (savedBasicInfo) {
@@ -227,7 +272,7 @@ const BankInfo = () => {
           console.error("Error parsing saved basic info:", error);
         }
       }
-      
+
       // If basic info is not submitted, navigate to basic info form
       navigate("/basic-info");
     } catch (error) {
@@ -247,8 +292,61 @@ const BankInfo = () => {
           onClick={() => navigate("/")}
           aria-label="Go back"
         >
-          ← Back
+          <span className="back-arrow">←</span>
+          <span className="back-text">Back</span>
         </button>
+
+        {/* Basic info box */}
+        {basicInfo && (
+          <div className="basic-info-box">
+            {basicInfo.firstName && basicInfo.lastName && (
+              <div className="basic-info-row">
+                <span className="basic-info-label">Name:</span>
+                <span className="basic-info-value">
+                  {basicInfo.firstName} {basicInfo.lastName}
+                </span>
+              </div>
+            )}
+            {basicInfo.cellPhone && (
+              <div className="basic-info-row">
+                <span className="basic-info-label">Phone:</span>
+                <span className="basic-info-value">{basicInfo.cellPhone}</span>
+              </div>
+            )}
+            {basicInfo.email && (
+              <div className="basic-info-row">
+                <span className="basic-info-label">Email:</span>
+                <span className="basic-info-value">{basicInfo.email}</span>
+              </div>
+            )}
+            {basicInfo.plateNumber && (
+              <div className="basic-info-row">
+                <span className="basic-info-label">Plate:</span>
+                <span className="basic-info-value">
+                  {basicInfo.plateNumber}
+                </span>
+              </div>
+            )}
+            {basicInfo.make && (
+              <div className="basic-info-row">
+                <span className="basic-info-label">Vehicle:</span>
+                <span className="basic-info-value">
+                  {basicInfo.make}
+                  {basicInfo.modelYear && ` ${basicInfo.modelYear}`}
+                  {basicInfo.color && ` ${basicInfo.color}`}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!basicInfo && (
+          <div className="basic-info-warning">
+            Please complete Basic Information first before submitting bank
+            information.
+          </div>
+        )}
+
         <p className="form-description">
           To get paid the next day, please provide your bank info.
         </p>
@@ -264,27 +362,31 @@ const BankInfo = () => {
           error={touched.accountName ? errors.accountName : ""}
         />
 
-        <TextField
-          label="Phone"
-          placeHolderTextInput="(555) 123-4567"
-          onChange={handleInputChange("phone")}
-          onBlur={handleBlur("phone")}
-          valueTrue={!!formData.phone}
-          value={formData.phone}
-          required
-          error={touched.phone ? errors.phone : ""}
-        />
+        {!basicInfo && (
+          <>
+            <TextField
+              label="Phone"
+              placeHolderTextInput="(555) 123-4567"
+              onChange={handleInputChange("phone")}
+              onBlur={handleBlur("phone")}
+              valueTrue={!!formData.phone}
+              value={formData.phone}
+              required
+              error={touched.phone ? errors.phone : ""}
+            />
 
-        <TextField
-          label="Plate Number"
-          placeHolderTextInput="ABC1234"
-          onChange={handleInputChange("plateNumber")}
-          onBlur={handleBlur("plateNumber")}
-          valueTrue={!!formData.plateNumber}
-          value={formData.plateNumber}
-          required
-          error={touched.plateNumber ? errors.plateNumber : ""}
-        />
+            <TextField
+              label="Plate Number"
+              placeHolderTextInput="ABC1234"
+              onChange={handleInputChange("plateNumber")}
+              onBlur={handleBlur("plateNumber")}
+              valueTrue={!!formData.plateNumber}
+              value={formData.plateNumber}
+              required
+              error={touched.plateNumber ? errors.plateNumber : ""}
+            />
+          </>
+        )}
 
         <TextField
           label="Account Number"
