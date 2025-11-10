@@ -302,3 +302,61 @@
   }
 }
 
+/* Success Screen Styles */
+.success-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  min-height: 50vh;
+}
+
+.success-icon {
+  margin-bottom: 24px;
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #003182;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.success-message {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.87);
+  margin: 0;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+@media (max-width: 480px) {
+  .success-message-container {
+    padding: 30px 15px;
+    min-height: 40vh;
+  }
+
+  .success-title {
+    font-size: 1.3rem;
+  }
+
+  .success-message {
+    font-size: 0.95rem;
+  }
+}
+

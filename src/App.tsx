@@ -8,6 +8,7 @@ import VoucherList from "./screens/VoucherList";
 import Home from "./screens/Home";
 import BasicInfo from "./screens/BasicInfo";
 import BankInfo from "./screens/BankInfo";
+import Success from "./screens/Success";
 
 /// before we are calling res in action we need to confirm the res status code and message before dispatching the action
 const App: React.FC = () => {
@@ -20,6 +21,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/basic-info" element={<BasicInfo />} />
         <Route path="/bank-info" element={<BankInfo />} />
+        <Route path="/success" element={<Success />} />
         <Route path="*" element={<Unauthorized />} />
       </Routes>
     </BrowserRouter>

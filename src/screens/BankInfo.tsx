@@ -208,7 +208,28 @@ const BankInfo = () => {
       await sendBankInfoEmail(formData);
       // Store bank info in localStorage after successful submission
       localStorage.setItem("bankInfo", JSON.stringify(formData));
-      alert("Bank information submitted successfully!");
+      
+      // Check if basic info is already submitted
+      const savedBasicInfo = localStorage.getItem("basicInfo");
+      if (savedBasicInfo) {
+        try {
+          const parsed = JSON.parse(savedBasicInfo);
+          // Check if basic info has meaningful data
+          const hasBasicData = Object.values(parsed).some(
+            (value) => value && String(value).trim() !== ""
+          );
+          if (hasBasicData) {
+            // Both forms are submitted, navigate to success screen
+            navigate("/success");
+            return;
+          }
+        } catch (error) {
+          console.error("Error parsing saved basic info:", error);
+        }
+      }
+      
+      // If basic info is not submitted, navigate to basic info form
+      navigate("/basic-info");
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to submit. Please try again.");

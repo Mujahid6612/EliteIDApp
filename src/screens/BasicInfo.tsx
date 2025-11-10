@@ -172,6 +172,27 @@ const BasicInfo = () => {
       localStorage.setItem("basicInfo", JSON.stringify(formData));
       setHasSavedData(true);
       setIsEditMode(false);
+      
+      // Check if bank info is already submitted
+      const savedBankInfo = localStorage.getItem("bankInfo");
+      if (savedBankInfo) {
+        try {
+          const parsed = JSON.parse(savedBankInfo);
+          // Check if bank info has meaningful data
+          const hasBankData = Object.values(parsed).some(
+            (value) => value && String(value).trim() !== ""
+          );
+          if (hasBankData) {
+            // Both forms are submitted, navigate to success screen
+            navigate("/success");
+            return;
+          }
+        } catch (error) {
+          console.error("Error parsing saved bank info:", error);
+        }
+      }
+      
+      // If bank info is not submitted, navigate to bank info form
       navigate("/bank-info");
     } catch (error) {
       console.error("Error sending email:", error);
