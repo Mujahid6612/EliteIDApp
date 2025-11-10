@@ -299,10 +299,13 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
         onCityStateChange={setCityState}
         pickupAddress={String(pickupAddress)}
         prefilledDropOfLocation={dropOfLocation}
+        cityState={cityState}
+        dropOfLocation={dropOfLocation}
       />
       <PassengerInfoInput
         passengerName={String(passengerName)}
         onPassengerNameChange={setPassengerNameInput}
+        passengerNameValue={passegerNameInput}
       />
       <div className="ml-10 mt-4 location-container">
         <p className="secoundaru-text mb-10">Voucher Attachment:</p>

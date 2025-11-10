@@ -39,6 +39,8 @@ interface LocationDetailsInputProps {
   onDropOfLocationChange: (value: string) => void;
   onCityStateChange: (value: string) => void;
   prefilledDropOfLocation: string;
+  cityState: string;
+  dropOfLocation: string;
 }
 
 const LocationDetailsInput = ({
@@ -46,6 +48,8 @@ const LocationDetailsInput = ({
   onDropOfLocationChange,
   onCityStateChange,
   prefilledDropOfLocation,
+  cityState,
+  dropOfLocation,
 }: LocationDetailsInputProps) => {
   return (
     <div className="location-container">
@@ -64,12 +68,14 @@ const LocationDetailsInput = ({
           <TextField
             placeHolderTextInput="Voucher"
             valueTrue={false}
+            value={cityState}
             onChange={(e) => onCityStateChange(e.target.value)}
           />
           <p className="secoundaru-text ">Drop Off Address:</p>
           <TextField
-            placeHolderTextInput={prefilledDropOfLocation}
+            placeHolderTextInput={prefilledDropOfLocation || "Drop Off Address"}
             valueTrue={true}
+            value={dropOfLocation}
             onChange={(e) => onDropOfLocationChange(e.target.value)}
           />
         </div>
@@ -103,10 +109,12 @@ const PassengerInfo = ({
 interface PassengerInfoInputProps {
   passengerName: string;
   onPassengerNameChange: (value: string) => void;
+  passengerNameValue: string;
 }
 const PassengerInfoInput = ({
   passengerName,
   onPassengerNameChange,
+  passengerNameValue,
 }: PassengerInfoInputProps) => {
   return (
     <div className="location-container">
@@ -115,6 +123,7 @@ const PassengerInfoInput = ({
         <TextField
           onChange={(e) => onPassengerNameChange(e.target.value)}
           valueTrue={false}
+          value={passengerNameValue}
           placeHolderTextInput={passengerName || "Enter Passenger Name"}
         />
       </div>
