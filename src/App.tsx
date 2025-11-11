@@ -10,6 +10,8 @@ import BasicInfo from "./screens/BasicInfo";
 import BankInfo from "./screens/BankInfo";
 import Success from "./screens/Success";
 
+
+console.log("environment", import.meta.env.VITE_ENV);
 /// before we are calling res in action we need to confirm the res status code and message before dispatching the action
 const App: React.FC = () => {
   return (
