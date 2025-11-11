@@ -9,6 +9,7 @@ import Home from "./screens/Home";
 import BasicInfo from "./screens/BasicInfo";
 import BankInfo from "./screens/BankInfo";
 import Success from "./screens/Success";
+import Ping from "./screens/Ping";
 
 
 console.log("environment", import.meta.env.VITE_ENV);
@@ -21,6 +22,7 @@ const App: React.FC = () => {
         <Route path="/:jobId/vouchers" element={<VoucherList />} />
         <Route path="/:jobId/*" element={<IndexScreen />} />
         <Route path="/" element={<Home />} />
+        <Route path="/ping" element={<Ping />} />
         <Route path="/basic-info" element={<BasicInfo />} />
         <Route path="/bank-info" element={<BankInfo />} />
         <Route path="/success" element={<Success />} />

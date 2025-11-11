@@ -48,19 +48,19 @@ const IndexScreen = () => {
     }
   }, [resfromlogView, responseFromLog]);
   // Check the location permission status on mount
-  useEffect(() => {
-    const checkLocationPermission = async () => {
-      try {
-        const result = await navigator.permissions.query({
-          name: "geolocation",
-        });
-        setLocationPermission(result.state);
-      } catch (error) {
-        console.error("Error checking geolocation permissions:", error);
-      }
-    };
-    checkLocationPermission();
-  }, []);
+  // useEffect(() => {
+  //   const checkLocationPermission = async () => {
+  //     try {
+  //       const result = await navigator.permissions.query({
+  //         name: "geolocation",
+  //       });
+  //       setLocationPermission(result.state);
+  //     } catch (error) {
+  //       console.error("Error checking geolocation permissions:", error);
+  //     }
+  //   };
+  //   checkLocationPermission();
+  // }, []);
 
   const fetchJobData = async () => {
     if (!jobId) return;
