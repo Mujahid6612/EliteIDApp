@@ -5,12 +5,9 @@
  */
 
 const tryAPI1 = async (routingNumber) => {
-  // API 1: Using CORS proxy for bankrouting.io via backend (more reliable)
-  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
-    `https://bankrouting.io/api/v1/aba/${routingNumber}`
-  )}`;
-  
-  const response = await fetch(proxyUrl, {
+  // API 1: Call bankrouting.io directly from the server (no CORS issues server-side)
+  const url = `https://bankrouting.io/api/v1/aba/${routingNumber}`;
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       'Accept': 'application/json',
@@ -22,33 +19,34 @@ const tryAPI1 = async (routingNumber) => {
     throw new Error(`API1 failed with status ${response.status}`);
   }
 
-  let proxyData;
-  try {
-    proxyData = await response.json();
-  } catch {
-    throw new Error("Invalid proxy response");
+  // Some providers occasionally return HTML on errors; guard before parsing
+  const contentType = response.headers.get('content-type') || '';
+  const rawText = await response.text();
+  if (!contentType.includes('application/json')) {
+    throw new Error('Upstream returned non-JSON');
   }
 
   let data;
   try {
-    data = JSON.parse(proxyData.contents);
+    data = JSON.parse(rawText);
   } catch {
-    throw new Error("Invalid JSON in proxy contents");
+    throw new Error("Invalid JSON from bankrouting.io");
   }
-  
+
   if (data.status === "error" && data.error) {
     throw new Error(data.error.message || "Invalid routing number");
   }
-  
+
   if (data.status === "success" && data.data && data.data.bank_name) {
     return data.data.bank_name;
   }
-  
+
   throw new Error("No bank name in response");
 };
 
 const tryAPI2 = async (routingNumber) => {
-  // API 2: routingnumbers.info (direct call from backend, no CORS issues)
+  // API 2: routingnumbers.info has become unreliable (redirects/HTML).
+  // Keep as best-effort with strict JSON/content-type checks.
   const response = await fetch(
     `https://www.routingnumbers.info/api/data.json?rn=${routingNumber}`,
     {
@@ -57,6 +55,7 @@ const tryAPI2 = async (routingNumber) => {
         'Accept': 'application/json',
         'User-Agent': 'EliteIDApp/1.0',
       },
+      redirect: 'follow',
     }
   );
 
@@ -64,9 +63,15 @@ const tryAPI2 = async (routingNumber) => {
     throw new Error(`API2 failed with status ${response.status}`);
   }
 
+  const contentType = response.headers.get('content-type') || '';
+  const rawText = await response.text();
+  if (!contentType.includes('application/json')) {
+    throw new Error('routingnumbers.info returned non-JSON');
+  }
+
   let data;
   try {
-    data = await response.json();
+    data = JSON.parse(rawText);
   } catch {
     throw new Error("Invalid JSON response");
   }

@@ -11,8 +11,9 @@ export const getBankNameFromRouting = async (routingNumber: string): Promise<str
     console.log(`[getBankName] Fetching bank info for routing number: ${routingNumber}`);
     
     // Call the backend API endpoint
-    // On Vercel: /api/get-bank-name will be routed to /api/get-bank-name.js by vercel.json
-    const apiUrl = `/api/get-bank-name?routingNumber=${encodeURIComponent(routingNumber)}`;
+    // Use absolute origin so production always hits the same host (prevents SPA rewrites)
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const apiUrl = `${origin}/api/get-bank-name?routingNumber=${encodeURIComponent(routingNumber)}`;
     console.log(`[getBankName] Calling API: ${apiUrl}`);
     
     const response = await fetch(apiUrl, {
