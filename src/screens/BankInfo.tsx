@@ -155,7 +155,8 @@ const BankInfo = () => {
     setFormData((prev) => ({
       ...prev,
       routingNumber,
-      // Don't clear bank name - allow user to keep manually entered value
+      // Reset bank name when routing number changes so it can be refreshed
+      bankName: prev.routingNumber !== routingNumber ? "" : prev.bankName,
     }));
 
     // Clear routing number error when user starts typing
@@ -167,23 +168,18 @@ const BankInfo = () => {
       }));
     }
 
-    // Fetch bank name when routing number is 9 digits (but don't override if user already entered it)
+    // Fetch bank name when routing number is 9 digits (always override with fresh lookup)
     if (routingNumber.replace(/\D/g, "").length === 9) {
       setIsLoadingBankName(true);
       try {
         const bankName = await getBankNameFromRouting(
           routingNumber.replace(/\D/g, "")
         );
-        // Only auto-fill if bank name is empty
-        setFormData((prev) => {
-          if (bankName && !prev.bankName.trim()) {
-            return {
-              ...prev,
-              bankName: bankName || "",
-            };
-          }
-          return prev;
-        });
+        // Always update with the latest bank name for the entered routing number
+        setFormData((prev) => ({
+          ...prev,
+          bankName: bankName || "",
+        }));
         // Clear any previous errors
         setErrors((prev) => ({
           ...prev,
