@@ -19,27 +19,33 @@ const tryAPI1 = async (routingNumber) => {
     throw new Error(`API1 failed with status ${response.status}`);
   }
 
-  // Some providers occasionally return HTML on errors; guard before parsing
-  const contentType = response.headers.get('content-type') || '';
+  // Some providers occasionally return HTML on errors or wrong content-type.
+  // Always read as text, then best-effort parse JSON.
   const rawText = await response.text();
-  if (!contentType.includes('application/json')) {
-    throw new Error('Upstream returned non-JSON');
-  }
-
   let data;
   try {
     data = JSON.parse(rawText);
   } catch {
-    throw new Error("Invalid JSON from bankrouting.io");
+    // If it looks like HTML, treat as non-JSON upstream error
+    if (rawText.trim().startsWith('<')) {
+      throw new Error('Upstream returned HTML instead of JSON');
+    }
+    throw new Error('Invalid JSON from bankrouting.io');
   }
 
   if (data.status === "error" && data.error) {
     throw new Error(data.error.message || "Invalid routing number");
   }
 
-  if (data.status === "success" && data.data && data.data.bank_name) {
-    return data.data.bank_name;
+  // Accept a few variants
+  if (data.status === "success" && data.data) {
+    if (data.data.bank_name) return data.data.bank_name;
+    if (data.data.name) return data.data.name;
+    if (data.data.institution_name) return data.data.institution_name;
   }
+  if (data.bank_name) return data.bank_name;
+  if (data.name) return data.name;
+  if (data.customer_name) return data.customer_name;
 
   throw new Error("No bank name in response");
 };
