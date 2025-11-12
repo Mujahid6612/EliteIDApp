@@ -1,6 +1,37 @@
-# React + TypeScript + Vite
+# EliteIDApp
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite application for Elite driver management system.
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Admin Access Key (required for /admin/vouchers route)
+VITE_ADMIN_KEY=your-secret-admin-key-here
+
+# Google Maps API Key (optional, for reverse geocoding)
+VITE_API_MAPS_KEY=your-google-maps-api-key
+
+# Environment (prod or dev)
+VITE_ENV=dev
+```
+
+### Admin Route Access
+
+To access the admin vouchers page, use the following URL format:
+```
+/admin/vouchers?key=your-secret-admin-key-here
+```
+
+The `key` parameter must match the `VITE_ADMIN_KEY` environment variable.
+
+## Features
+
+- Driver job management workflow
+- Location tracking and mapping
+- Voucher management
+- Admin dashboard for vouchers
 
 Currently, two official plugins are available:
 
