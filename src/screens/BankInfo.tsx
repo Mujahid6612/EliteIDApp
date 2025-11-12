@@ -188,10 +188,21 @@ const BankInfo = () => {
         setErrors((prev) => ({
           ...prev,
           bankName: "",
+          routingNumber: "",
         }));
       } catch (error) {
         console.error("Error fetching bank name:", error);
-        // Don't set error - allow user to enter manually
+        // Show API error message to user
+        const errorMessage = error instanceof Error ? error.message : "Invalid routing number";
+        setErrors((prev) => ({
+          ...prev,
+          routingNumber: errorMessage,
+        }));
+        // Mark field as touched so error displays
+        setTouched((prev) => ({
+          ...prev,
+          routingNumber: true,
+        }));
       } finally {
         setIsLoadingBankName(false);
       }
@@ -408,6 +419,7 @@ const BankInfo = () => {
             valueTrue={!!formData.routingNumber}
             value={formData.routingNumber}
             required
+            disabled={isLoadingBankName}
             error={touched.routingNumber ? errors.routingNumber : ""}
           />
           {isLoadingBankName && (
@@ -423,6 +435,7 @@ const BankInfo = () => {
           valueTrue={!!formData.bankName}
           value={formData.bankName}
           required
+          disabled={isLoadingBankName}
           error={touched.bankName ? errors.bankName : ""}
         />
 
