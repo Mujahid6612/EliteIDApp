@@ -1,6 +1,3 @@
-import { API_ROUTES } from "../constants/apiRoutes";
-import axios from "axios";
-
 export interface AdminVoucher {
   driverId: string;
   rideId: string;
