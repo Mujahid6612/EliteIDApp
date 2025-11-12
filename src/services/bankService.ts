@@ -30,7 +30,7 @@ export const getBankNameFromRouting = async (routingNumber: string): Promise<str
       try {
         responseText = await response.text();
         console.error(`[getBankName] Error response: ${responseText.substring(0, 200)}`);
-      } catch (e) {
+      } catch {
         console.error(`[getBankName] Could not read error response`);
       }
 
