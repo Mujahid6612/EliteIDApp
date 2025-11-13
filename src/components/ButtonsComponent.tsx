@@ -6,11 +6,19 @@ interface Props {
   popVariantButton?: string,
   buttonWidth?: string,
   popupButtonRedClass?: string;
+  disabled?: boolean;
 }
-const ButtonsComponent = ({buttonText,buttonVariant, functionpassed, popVariantButton, buttonWidth = "70%", popupButtonRedClass}: Props) => {
+const ButtonsComponent = ({buttonText,buttonVariant, functionpassed, popVariantButton, buttonWidth = "70%", popupButtonRedClass, disabled = false}: Props) => {
   return (
     <div style={{textAlign: "center"}}>
-    <button style={{ width: buttonWidth ? buttonWidth : "70%" }}  className={`${popupButtonRedClass} button ${buttonVariant} ${popVariantButton}`} onClick={functionpassed}>{buttonText}</button>
+    <button 
+      style={{ width: buttonWidth ? buttonWidth : "70%" }}  
+      className={`${popupButtonRedClass} button ${buttonVariant} ${popVariantButton} ${disabled ? "disabled" : ""}`} 
+      onClick={functionpassed}
+      disabled={disabled}
+    >
+      {buttonText}
+    </button>
     </div>
   )
 }

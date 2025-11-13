@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import "../styles/Form.css";
@@ -6,27 +5,6 @@ import "../styles/Home.css";
 
 const Success = () => {
   const navigate = useNavigate();
-  const [hasBankInfo, setHasBankInfo] = useState(false);
-
-  useEffect(() => {
-    // Check if bank info exists in localStorage
-    const savedBankInfo = localStorage.getItem("bankInfo");
-    if (savedBankInfo) {
-      try {
-        const parsed = JSON.parse(savedBankInfo);
-        // Check if bank info has meaningful data
-        const hasData = Object.values(parsed).some(
-          (value) => value && String(value).trim() !== ""
-        );
-        setHasBankInfo(hasData);
-      } catch (error) {
-        console.error("Error parsing saved bank info:", error);
-        setHasBankInfo(false);
-      }
-    } else {
-      setHasBankInfo(false);
-    }
-  }, []);
 
   return (
     <>
@@ -52,18 +30,15 @@ const Success = () => {
             Someone from driver relations will contact you soon.
           </p>
           
-          {!hasBankInfo && (
-            <div 
-              className="option-box" 
-              onClick={() => navigate("/bank-info")}
-              style={{ marginTop: "30px" }}
-            >
-              <h2 className="option-title">Enter your bank details</h2>
-              <p className="option-description">
-                To get paid the next day, please provide your bank information.
-              </p>
-            </div>
-          )}
+          <div className="last-step-section">
+            <h3 className="last-step-title">Last Step:</h3>
+            <p className="last-step-instruction">
+              Please email copies of your driver's license and car registration to{" "}
+              <a href="mailto:EIDApp@EliteNY.com" className="email-link">
+                EIDApp@EliteNY.com
+              </a>
+            </p>
+          </div>
           
           <button
             className="back-button"
@@ -71,7 +46,24 @@ const Success = () => {
             aria-label="Go back to home"
             style={{ marginTop: "30px" }}
           >
-            ← Back to Home
+            <span className="back-arrow">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="back-text">Back to Home</span>
           </button>
         </div>
       </div>

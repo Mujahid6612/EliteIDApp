@@ -9,6 +9,7 @@ import Home from "./screens/Home";
 import BasicInfo from "./screens/BasicInfo";
 import BankInfo from "./screens/BankInfo";
 import Success from "./screens/Success";
+import PaymentOptions from "./screens/PaymentOptions";
 
 
 console.log("environment", import.meta.env.VITE_ENV);
@@ -23,6 +24,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/basic-info" element={<BasicInfo />} />
         <Route path="/bank-info" element={<BankInfo />} />
+        <Route path="/payment-options" element={<PaymentOptions />} />
         <Route path="/success" element={<Success />} />
         <Route path="*" element={<Unauthorized />} />
       </Routes>

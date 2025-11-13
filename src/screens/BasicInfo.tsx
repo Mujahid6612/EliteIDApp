@@ -4,6 +4,7 @@ import HeaderLayout from "../components/HeaderLayout";
 import TextField from "../components/TextField";
 import ButtonsComponent from "../components/ButtonsComponent";
 import { sendBasicInfoEmail } from "../services/emailService";
+import { CAR_YEARS } from "../constants";
 import "../styles/Form.css";
 
 const BasicInfo = () => {
@@ -14,15 +15,16 @@ const BasicInfo = () => {
     cellPhone: "",
     email: "",
     plateNumber: "",
-    make: "",
+    makeModel: "",
     modelYear: "",
-    color: "",
+    color: "Black",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasSavedData, setHasSavedData] = useState(false);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
 
   useEffect(() => {
     // Load saved basic info from localStorage if available
@@ -35,7 +37,13 @@ const BasicInfo = () => {
           (value) => value && String(value).trim() !== ""
         );
         if (hasData) {
-          setFormData(parsed);
+          // Handle migration from old format (make -> makeModel)
+          const migratedData = {
+            ...parsed,
+            makeModel: parsed.makeModel || parsed.make || "",
+            color: parsed.color || "Black",
+          };
+          setFormData(migratedData);
           setHasSavedData(true);
           setIsEditMode(false);
         } else {
@@ -82,25 +90,26 @@ const BasicInfo = () => {
       }
       case "plateNumber": {
         if (!value.trim()) return "Plate number is required";
+        const alphanumericRegex = /^[A-Za-z0-9]{8}$/;
+        if (!alphanumericRegex.test(value.trim())) {
+          return "Plate number must be exactly 8 alphanumeric characters";
+        }
         return "";
       }
-      case "make": {
-        if (!value.trim()) return "Make is required";
+      case "makeModel": {
+        if (!value.trim()) return "Make | Model is required";
         return "";
       }
       case "modelYear": {
-        if (!value.trim()) return "Year is required";
+        if (!value.trim()) return "Car Year is required";
         const year = parseInt(value);
-        const currentYear = new Date().getFullYear();
-        if (isNaN(year) || year < 1900 || year > currentYear + 1) {
-          return `Please enter a valid year between 1900 and ${
-            currentYear + 1
-          }`;
+        if (isNaN(year) || year < 2020 || year > 2025) {
+          return "Please select a year between 2020 and 2025";
         }
         return "";
       }
       case "color": {
-        if (!value.trim()) return "Color is required";
+        // Color is optional, no validation needed
         return "";
       }
       default:
@@ -109,8 +118,14 @@ const BasicInfo = () => {
   };
 
   const handleInputChange =
-    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
+    (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      let value = e.target.value;
+      
+      // Auto-uppercase plate number and limit to 8 alphanumeric characters
+      if (field === "plateNumber") {
+        value = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+      }
+      
       setFormData((prev) => ({
         ...prev,
         [field]: value,
@@ -138,6 +153,50 @@ const BasicInfo = () => {
     }));
   };
 
+  const handleSelectBlur = (field: string) => () => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const error = validateField(
+      field,
+      formData[field as keyof typeof formData]
+    );
+    setErrors((prev) => ({
+      ...prev,
+      [field]: error,
+    }));
+  };
+
+  const handleYearSelect = (year: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      modelYear: year,
+    }));
+    setIsYearDropdownOpen(false);
+    
+    // Clear error when user selects
+    if (errors.modelYear) {
+      const error = validateField("modelYear", year);
+      setErrors((prev) => ({
+        ...prev,
+        modelYear: error,
+      }));
+    }
+    
+    // Mark as touched
+    setTouched((prev) => ({ ...prev, modelYear: true }));
+  };
+
+  const handleYearInputClick = () => {
+    setIsYearDropdownOpen(!isYearDropdownOpen);
+  };
+
+  const handleYearInputBlur = () => {
+    // Delay closing to allow click on dropdown item
+    setTimeout(() => {
+      setIsYearDropdownOpen(false);
+      handleSelectBlur("modelYear")();
+    }, 150);
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     let isValid = true;
@@ -161,20 +220,42 @@ const BasicInfo = () => {
   };
 
   const handleSubmit = async () => {
+    // Case 1: Data already exists and user is NOT in edit mode → Navigate directly without API call
+    if (hasSavedData && !isEditMode) {
+      navigate("/payment-options");
+      return;
+    }
+
+    // Case 2 & 3: User is in edit mode OR first time submission → Validate and call API
     if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await sendBasicInfoEmail(formData);
+      // Check if we're in production mode
+      const isProduction = import.meta.env.VITE_ENV === "prod";
+      
+      // Only call API in production mode
+      if (isProduction) {
+        // Map makeModel to make for email service compatibility
+        const emailData = {
+          ...formData,
+          make: formData.makeModel,
+        };
+        await sendBasicInfoEmail(emailData);
+      } else {
+        // In development mode, just log instead of calling API
+        console.log("Development mode: Skipping API call. Form data:", formData);
+      }
+      
       // Store form data in localStorage for use in bank info page
       localStorage.setItem("basicInfo", JSON.stringify(formData));
       setHasSavedData(true);
       setIsEditMode(false);
 
-      // If bank info is not submitted, navigate to bank info form
-      navigate("/success");
+      // Navigate to payment options screen
+      navigate("/payment-options");
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to submit. Please try again.");
@@ -194,7 +275,7 @@ const BasicInfo = () => {
       { label: "Cell Phone", value: formData.cellPhone },
       { label: "Email", value: formData.email },
       { label: "Plate Number", value: formData.plateNumber },
-      { label: "Make", value: formData.make },
+      { label: "Make | Model", value: formData.makeModel },
       { label: "Year", value: formData.modelYear },
       { label: "Color", value: formData.color },
     ];
@@ -234,18 +315,40 @@ const BasicInfo = () => {
     );
   };
 
+
   return (
     <>
-      <HeaderLayout screenName="Basic Information" />
+      <HeaderLayout screenName="Registration" />
       <div className="form-container">
         <button
           className="back-button"
           onClick={() => navigate("/")}
           aria-label="Go back"
         >
-          <span className="back-arrow">←</span>
+          <span className="back-arrow">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
           <span className="back-text">Back</span>
         </button>
+        
+        <h1 className="registration-heading">
+          To join our community please provide your personal and vehicle details
+        </h1>
+
         {hasSavedData && !isEditMode ? (
           renderDataTable()
         ) : (
@@ -296,7 +399,7 @@ const BasicInfo = () => {
             <h2 className="form-section-title">Vehicle Info</h2>
             <TextField
               label="Plate Number"
-              placeHolderTextInput="ABC-1234"
+              placeHolderTextInput="ABC12345"
               onChange={handleInputChange("plateNumber")}
               onBlur={handleBlur("plateNumber")}
               valueTrue={!!formData.plateNumber}
@@ -305,50 +408,81 @@ const BasicInfo = () => {
               error={touched.plateNumber ? errors.plateNumber : ""}
             />
             <TextField
-              label="Make"
-              placeHolderTextInput="Toyota"
-              onChange={handleInputChange("make")}
-              onBlur={handleBlur("make")}
-              valueTrue={!!formData.make}
-              value={formData.make}
+              label="Make | Model"
+              placeHolderTextInput="Toyota Camry"
+              onChange={handleInputChange("makeModel")}
+              onBlur={handleBlur("makeModel")}
+              valueTrue={!!formData.makeModel}
+              value={formData.makeModel}
               required
-              error={touched.make ? errors.make : ""}
+              error={touched.makeModel ? errors.makeModel : ""}
             />
+            
             <div className="row-fields">
               <div className="field-model-year">
-                <TextField
-                  label="Year"
-                  placeHolderTextInput="2022"
-                  onChange={handleInputChange("modelYear")}
-                  onBlur={handleBlur("modelYear")}
-                  valueTrue={!!formData.modelYear}
-                  value={formData.modelYear}
-                  required
-                  error={touched.modelYear ? errors.modelYear : ""}
-                />
+                <div className={`text-field-container outlined-field ${formData.modelYear ? "has-value" : ""} ${touched.modelYear && errors.modelYear ? "has-error" : ""} ${isYearDropdownOpen ? "is-focused" : ""}`}>
+                  <div className="dropdown-input-wrapper">
+                    <input
+                      readOnly
+                      className={`primary-text-field dropdown-input ${touched.modelYear && errors.modelYear ? "error-field" : ""}`}
+                      value={formData.modelYear || ""}
+                      placeholder=""
+                      onClick={handleYearInputClick}
+                      onBlur={handleYearInputBlur}
+                      onFocus={handleYearInputClick}
+                      id="car-year"
+                      required
+                    />
+                    <span className="dropdown-arrow">▼</span>
+                  </div>
+                  <label className="outlined-label" htmlFor="car-year">
+                    Car Year
+                    <span className="required-asterisk"> *</span>
+                  </label>
+                  {isYearDropdownOpen && (
+                    <div className="dropdown-menu">
+                      {CAR_YEARS.map((year) => (
+                        <div
+                          key={year}
+                          className={`dropdown-item ${formData.modelYear === year.toString() ? "selected" : ""}`}
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevent input blur before click
+                            handleYearSelect(year.toString());
+                          }}
+                        >
+                          {year}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {touched.modelYear && errors.modelYear && (
+                    <span className="error-message" role="alert">
+                      {errors.modelYear}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="field-color">
                 <TextField
-                  label="Color"
-                  placeHolderTextInput="Blue"
+                  label="Car Color"
+                  placeHolderTextInput="Black"
                   onChange={handleInputChange("color")}
                   onBlur={handleBlur("color")}
                   valueTrue={!!formData.color}
                   value={formData.color}
-                  required
                   error={touched.color ? errors.color : ""}
                 />
               </div>
             </div>
-
-            <ButtonsComponent
-              buttonText={isSubmitting ? "Submitting..." : "Submit"}
-              buttonVariant="primary"
-              functionpassed={handleSubmit}
-              buttonWidth="100%"
-            />
           </>
         )}
+
+        <ButtonsComponent
+          buttonText={isSubmitting ? "Submitting..." : "Next"}
+          buttonVariant="primary"
+          functionpassed={handleSubmit}
+          buttonWidth="100%"
+        />
       </div>
     </>
   );

@@ -9,12 +9,10 @@ export default async function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
 
   try {
-    const { accountName, phone, plateNumber, accountNumber, routingNumber } = req.body;
+    const { paymentOption } = req.body;
 
-    // Validate required fields
-    if (!accountName || !phone || !plateNumber || !accountNumber || !routingNumber) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+    // Check if this is a new payment options request or legacy bank info request
+    const isPaymentOptionsRequest = paymentOption && ["bank-transfer", "check-by-mail", "pickup-check"].includes(paymentOption);
 
     // Get email configuration from environment variables
     const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
@@ -39,9 +37,76 @@ export default async function handler(req, res) {
       },
     });
 
-    // Email content
-    const emailSubject = "Driver provided Bank info";
-    const emailBody = `
+    let emailSubject = "";
+    let emailBody = "";
+
+    // Handle new payment options format
+    if (isPaymentOptionsRequest) {
+      if (paymentOption === "bank-transfer") {
+        const { accountName, phone, plateNumber, accountNumber, routingNumber, bankName } = req.body;
+
+        // Validate required fields for bank transfer
+        if (!accountName || !accountNumber || !routingNumber || !bankName) {
+          return res.status(400).json({ error: "Missing required fields for bank transfer" });
+        }
+
+        emailSubject = "Driver selected Bank Transfer payment option";
+        emailBody = `
+New Driver Application - Payment Option: Bank Transfer
+
+Bank Account Details:
+- Account Name: ${accountName}
+${phone ? `- Phone: ${phone}` : ""}
+${plateNumber ? `- Plate Number: ${plateNumber}` : ""}
+- Account Number: ${accountNumber}
+- Routing Number: ${routingNumber}
+- Bank Name: ${bankName}
+        `.trim();
+      } else if (paymentOption === "check-by-mail") {
+        const { nameOnCheck, streetNumber, streetName, town, state, zipCode } = req.body;
+
+        // Validate required fields for check by mail
+        if (!nameOnCheck || !streetNumber || !streetName || !town || !state || !zipCode) {
+          return res.status(400).json({ error: "Missing required fields for check by mail" });
+        }
+
+        emailSubject = "Driver selected Check by Mail payment option";
+        emailBody = `
+New Driver Application - Payment Option: Check by Mail
+
+Mailing Address:
+- Name on Check: ${nameOnCheck}
+- Street Number: ${streetNumber}
+- Street Name: ${streetName}
+- Town: ${town}
+- State: ${state}
+- Zip Code: ${zipCode}
+        `.trim();
+      } else if (paymentOption === "pickup-check") {
+        emailSubject = "Driver selected Pickup Check payment option";
+        emailBody = `
+New Driver Application - Payment Option: Pickup Check
+
+The driver has selected to pick up their check at:
+- Elite Limousine Plus, Inc.
+- 32-72 Gale Ave
+- Long Island City, NY 11101
+- Driver Relations (first floor)
+- Phone: 718-472-2300 x237 / x211
+- Hours: Mon - Fri 10:00 am - 6:00 pm
+        `.trim();
+      }
+    } else {
+      // Legacy bank info format (for backward compatibility)
+      const { accountName, phone, plateNumber, accountNumber, routingNumber } = req.body;
+
+      // Validate required fields
+      if (!accountName || !phone || !plateNumber || !accountNumber || !routingNumber) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      emailSubject = "Driver provided Bank info";
+      emailBody = `
 New Driver Application - Bank Information
 
 Bank Account Details:
@@ -50,7 +115,8 @@ Bank Account Details:
 - Plate Number: ${plateNumber}
 - Account Number: ${accountNumber}
 - Routing Number: ${routingNumber}
-    `.trim();
+      `.trim();
+    }
 
     // Send email
     const info = await transporter.sendMail({
