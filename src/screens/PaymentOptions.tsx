@@ -595,6 +595,7 @@ const PaymentOptions = () => {
       const envValue = import.meta.env.VITE_ENV;
       const isProduction = !envValue || envValue === "prod";
       
+      setIsSubmitting(true);
       try {
         if (isProduction) {
           await sendPaymentOptionsEmail(paymentOptionsPayload);
@@ -661,6 +662,7 @@ const PaymentOptions = () => {
       const envValue = import.meta.env.VITE_ENV;
       const isProduction = !envValue || envValue === "prod";
       
+      setIsSubmitting(true);
       try {
         if (isProduction) {
           await sendPaymentOptionsEmail(paymentOptionsPayload);
@@ -702,6 +704,7 @@ const PaymentOptions = () => {
       const envValue = import.meta.env.VITE_ENV;
       const isProduction = !envValue || envValue === "prod";
       
+      setIsSubmitting(true);
       try {
         if (isProduction) {
           await sendPaymentOptionsEmail(paymentOptionsPayload);
