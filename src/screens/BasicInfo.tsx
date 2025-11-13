@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import TextField from "../components/TextField";
 import ButtonsComponent from "../components/ButtonsComponent";
-import { sendBasicInfoEmail } from "../services/emailService";
 import { CAR_YEARS } from "../constants";
 import "../styles/Form.css";
 
@@ -20,7 +19,6 @@ const BasicInfo = () => {
     color: "Black",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasSavedData, setHasSavedData] = useState(false);
@@ -219,49 +217,25 @@ const BasicInfo = () => {
     return isValid;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     // Case 1: Data already exists and user is NOT in edit mode → Navigate directly without API call
     if (hasSavedData && !isEditMode) {
       navigate("/payment-options");
       return;
     }
 
-    // Case 2 & 3: User is in edit mode OR first time submission → Validate and call API
+    // Case 2 & 3: User is in edit mode OR first time submission → Validate and save to localStorage
     if (!validateForm()) {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      // Check if we're in production mode
-      const isProduction = import.meta.env.VITE_ENV === "prod";
-      
-      // Only call API in production mode
-      if (isProduction) {
-        // Map makeModel to make for email service compatibility
-        const emailData = {
-          ...formData,
-          make: formData.makeModel,
-        };
-        await sendBasicInfoEmail(emailData);
-      } else {
-        // In development mode, just log instead of calling API
-        console.log("Development mode: Skipping API call. Form data:", formData);
-      }
-      
-      // Store form data in localStorage for use in bank info page
-      localStorage.setItem("basicInfo", JSON.stringify(formData));
-      setHasSavedData(true);
-      setIsEditMode(false);
+    // Store form data in localStorage (API will be called on payment submission)
+    localStorage.setItem("basicInfo", JSON.stringify(formData));
+    setHasSavedData(true);
+    setIsEditMode(false);
 
-      // Navigate to payment options screen
-      navigate("/payment-options");
-    } catch (error) {
-      console.error("Error sending email:", error);
-      alert("Failed to submit. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Navigate to payment options screen
+    navigate("/payment-options");
   };
 
   const handleEdit = () => {
@@ -478,7 +452,7 @@ const BasicInfo = () => {
         )}
 
         <ButtonsComponent
-          buttonText={isSubmitting ? "Submitting..." : "Next"}
+          buttonText="Next"
           buttonVariant="primary"
           functionpassed={handleSubmit}
           buttonWidth="100%"

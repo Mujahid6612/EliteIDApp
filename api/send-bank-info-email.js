@@ -42,6 +42,27 @@ export default async function handler(req, res) {
 
     // Handle new payment options format
     if (isPaymentOptionsRequest) {
+      const { basicInfo } = req.body;
+      
+      // Build basic info section
+      let basicInfoSection = "";
+      if (basicInfo) {
+        basicInfoSection = `
+Personal Information:
+- First Name: ${basicInfo.firstName || "N/A"}
+- Last Name: ${basicInfo.lastName || "N/A"}
+- Cell Phone: ${basicInfo.cellPhone || "N/A"}
+- Email: ${basicInfo.email || "N/A"}
+
+Vehicle Information:
+- Plate Number: ${basicInfo.plateNumber || "N/A"}
+- Make | Model: ${basicInfo.makeModel || basicInfo.make || "N/A"}
+- Model Year: ${basicInfo.modelYear || "N/A"}
+- Color: ${basicInfo.color || "N/A"}
+
+`;
+      }
+
       if (paymentOption === "bank-transfer") {
         const { accountName, phone, plateNumber, accountNumber, routingNumber, bankName } = req.body;
 
@@ -50,11 +71,11 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: "Missing required fields for bank transfer" });
         }
 
-        emailSubject = "Driver selected Bank Transfer payment option";
+        emailSubject = "New Driver Application - Complete Registration";
         emailBody = `
 New Driver Application - Payment Option: Bank Transfer
 
-Bank Account Details:
+${basicInfoSection}Bank Account Details:
 - Account Name: ${accountName}
 ${phone ? `- Phone: ${phone}` : ""}
 ${plateNumber ? `- Plate Number: ${plateNumber}` : ""}
@@ -70,11 +91,11 @@ ${plateNumber ? `- Plate Number: ${plateNumber}` : ""}
           return res.status(400).json({ error: "Missing required fields for check by mail" });
         }
 
-        emailSubject = "Driver selected Check by Mail payment option";
+        emailSubject = "New Driver Application - Complete Registration";
         emailBody = `
 New Driver Application - Payment Option: Check by Mail
 
-Mailing Address:
+${basicInfoSection}Mailing Address:
 - Name on Check: ${nameOnCheck}
 - Street Number: ${streetNumber}
 - Street Name: ${streetName}
@@ -83,11 +104,11 @@ Mailing Address:
 - Zip Code: ${zipCode}
         `.trim();
       } else if (paymentOption === "pickup-check") {
-        emailSubject = "Driver selected Pickup Check payment option";
+        emailSubject = "New Driver Application - Complete Registration";
         emailBody = `
 New Driver Application - Payment Option: Pickup Check
 
-The driver has selected to pick up their check at:
+${basicInfoSection}The driver has selected to pick up their check at:
 - Elite Limousine Plus, Inc.
 - 32-72 Gale Ave
 - Long Island City, NY 11101

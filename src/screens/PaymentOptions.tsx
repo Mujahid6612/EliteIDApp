@@ -573,14 +573,27 @@ const PaymentOptions = () => {
         bankName: submissionData.bankName.replace(/\s*\(verified\)\s*$/i, ""),
       };
 
-      // Prepare payment options payload
+      // Get basic info from localStorage
+      const savedBasicInfo = localStorage.getItem("basicInfo");
+      let basicInfoData = null;
+      if (savedBasicInfo) {
+        try {
+          basicInfoData = JSON.parse(savedBasicInfo);
+        } catch (e) {
+          console.error("Error parsing basic info:", e);
+        }
+      }
+
+      // Prepare payment options payload with basic info
       const paymentOptionsPayload = {
         paymentOption: "bank-transfer" as const,
         ...cleanSubmissionData,
+        basicInfo: basicInfoData,
       };
 
-      // Check if we're in production mode
-      const isProduction = import.meta.env.VITE_ENV === "prod";
+      // Check if we're in production mode (default to "prod" if undefined/null)
+      const envValue = import.meta.env.VITE_ENV;
+      const isProduction = !envValue || envValue === "prod";
       
       try {
         if (isProduction) {
@@ -626,14 +639,27 @@ const PaymentOptions = () => {
         return;
       }
 
-      // Prepare payment options payload
+      // Get basic info from localStorage
+      const savedBasicInfo = localStorage.getItem("basicInfo");
+      let basicInfoData = null;
+      if (savedBasicInfo) {
+        try {
+          basicInfoData = JSON.parse(savedBasicInfo);
+        } catch (e) {
+          console.error("Error parsing basic info:", e);
+        }
+      }
+
+      // Prepare payment options payload with basic info
       const paymentOptionsPayload = {
         paymentOption: "check-by-mail" as const,
         ...checkByMailData,
+        basicInfo: basicInfoData,
       };
 
-      // Check if we're in production mode
-      const isProduction = import.meta.env.VITE_ENV === "prod";
+      // Check if we're in production mode (default to "prod" if undefined/null)
+      const envValue = import.meta.env.VITE_ENV;
+      const isProduction = !envValue || envValue === "prod";
       
       try {
         if (isProduction) {
@@ -655,13 +681,26 @@ const PaymentOptions = () => {
     }
 
     if (selectedOption === "pickup-check") {
-      // Prepare payment options payload
+      // Get basic info from localStorage
+      const savedBasicInfo = localStorage.getItem("basicInfo");
+      let basicInfoData = null;
+      if (savedBasicInfo) {
+        try {
+          basicInfoData = JSON.parse(savedBasicInfo);
+        } catch (e) {
+          console.error("Error parsing basic info:", e);
+        }
+      }
+
+      // Prepare payment options payload with basic info
       const paymentOptionsPayload = {
         paymentOption: "pickup-check" as const,
+        basicInfo: basicInfoData,
       };
 
-      // Check if we're in production mode
-      const isProduction = import.meta.env.VITE_ENV === "prod";
+      // Check if we're in production mode (default to "prod" if undefined/null)
+      const envValue = import.meta.env.VITE_ENV;
+      const isProduction = !envValue || envValue === "prod";
       
       try {
         if (isProduction) {
