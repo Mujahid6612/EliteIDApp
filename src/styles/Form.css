@@ -303,6 +303,18 @@
   align-items: flex-start;
 }
 
+.field-make {
+  min-width: 0;
+  width: 50%;
+  flex-shrink: 0;
+}
+
+.field-model {
+  min-width: 0;
+  width: 50%;
+  flex-shrink: 0;
+}
+
 .field-model-year {
   min-width: 0;
   width: 35%;
@@ -543,6 +555,14 @@
     margin-top: -20px;
   }
 
+  .field-make {
+    width: 50%;
+  }
+
+  .field-model {
+    width: 50%;
+  }
+
   .field-model-year {
     width: 40%;
   }
@@ -630,11 +650,20 @@
   max-width: 500px;
 }
 
+.last-step-section.register-card {
+  background-color: white;
+  border-radius: 15px;
+  padding: 25px;
+  border: 2px solid #418cfe;
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
 .last-step-title {
-  font-size: 1rem;
+  font-size: 1.8rem;
   font-weight: bold;
-  color: #003182;
-  margin: 0 0 10px 0;
+  color: #d32f2f;
+  margin: 0 0 15px 0;
 }
 
 .last-step-instruction {

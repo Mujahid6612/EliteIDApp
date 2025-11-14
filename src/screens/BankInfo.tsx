@@ -350,11 +350,12 @@ const BankInfo = () => {
                 </span>
               </div>
             )}
-            {basicInfo.make && (
+            {(basicInfo.make || basicInfo.model) && (
               <div className="basic-info-row">
                 <span className="basic-info-label">Vehicle:</span>
                 <span className="basic-info-value">
-                  {basicInfo.make}
+                  {basicInfo.make || ""}
+                  {basicInfo.model && ` ${basicInfo.model}`}
                   {basicInfo.modelYear && ` ${basicInfo.modelYear}`}
                   {basicInfo.color && ` ${basicInfo.color}`}
                 </span>

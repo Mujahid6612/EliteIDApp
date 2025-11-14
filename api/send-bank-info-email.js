@@ -56,7 +56,8 @@ Personal Information:
 
 Vehicle Information:
 - Plate Number: ${basicInfo.plateNumber || "N/A"}
-- Make | Model: ${basicInfo.makeModel || basicInfo.make || "N/A"}
+- Make: ${basicInfo.make || "N/A"}
+- Model: ${basicInfo.model || "N/A"}
 - Model Year: ${basicInfo.modelYear || "N/A"}
 - Color: ${basicInfo.color || "N/A"}
 

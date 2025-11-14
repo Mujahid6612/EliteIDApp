@@ -14,7 +14,8 @@ const BasicInfo = () => {
     cellPhone: "",
     email: "",
     plateNumber: "",
-    makeModel: "",
+    make: "",
+    model: "",
     modelYear: "",
     color: "Black",
   });
@@ -35,10 +36,25 @@ const BasicInfo = () => {
           (value) => value && String(value).trim() !== ""
         );
         if (hasData) {
-          // Handle migration from old format (make -> makeModel)
+          // Handle migration from old format (makeModel -> make and model)
+          // If makeModel exists, try to split it, otherwise use as make
+          let make = "";
+          let model = "";
+          if (parsed.makeModel) {
+            const parts = parsed.makeModel.split(/\s+/);
+            make = parts[0] || "";
+            model = parts.slice(1).join(" ") || "";
+          } else if (parsed.make) {
+            make = parsed.make;
+          }
+          if (parsed.model) {
+            model = parsed.model;
+          }
+          
           const migratedData = {
             ...parsed,
-            makeModel: parsed.makeModel || parsed.make || "",
+            make: make,
+            model: model,
             color: parsed.color || "Black",
           };
           setFormData(migratedData);
@@ -94,8 +110,12 @@ const BasicInfo = () => {
         }
         return "";
       }
-      case "makeModel": {
-        if (!value.trim()) return "Make | Model is required";
+      case "make": {
+        if (!value.trim()) return "Make is required";
+        return "";
+      }
+      case "model": {
+        if (!value.trim()) return "Model is required";
         return "";
       }
       case "modelYear": {
@@ -249,7 +269,8 @@ const BasicInfo = () => {
       { label: "Cell Phone", value: formData.cellPhone },
       { label: "Email", value: formData.email },
       { label: "Plate Number", value: formData.plateNumber },
-      { label: "Make | Model", value: formData.makeModel },
+      { label: "Make", value: formData.make },
+      { label: "Model", value: formData.model },
       { label: "Year", value: formData.modelYear },
       { label: "Color", value: formData.color },
     ];
@@ -381,16 +402,33 @@ const BasicInfo = () => {
               required
               error={touched.plateNumber ? errors.plateNumber : ""}
             />
-            <TextField
-              label="Make | Model"
-              placeHolderTextInput="Toyota Camry"
-              onChange={handleInputChange("makeModel")}
-              onBlur={handleBlur("makeModel")}
-              valueTrue={!!formData.makeModel}
-              value={formData.makeModel}
-              required
-              error={touched.makeModel ? errors.makeModel : ""}
-            />
+            
+            <div className="row-fields">
+              <div className="field-make">
+                <TextField
+                  label="Make"
+                  placeHolderTextInput="Toyota"
+                  onChange={handleInputChange("make")}
+                  onBlur={handleBlur("make")}
+                  valueTrue={!!formData.make}
+                  value={formData.make}
+                  required
+                  error={touched.make ? errors.make : ""}
+                />
+              </div>
+              <div className="field-model">
+                <TextField
+                  label="Model"
+                  placeHolderTextInput="Camry"
+                  onChange={handleInputChange("model")}
+                  onBlur={handleBlur("model")}
+                  valueTrue={!!formData.model}
+                  value={formData.model}
+                  required
+                  error={touched.model ? errors.model : ""}
+                />
+              </div>
+            </div>
             
             <div className="row-fields">
               <div className="field-model-year">

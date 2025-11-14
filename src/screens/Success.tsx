@@ -30,7 +30,7 @@ const Success = () => {
             Someone from driver relations will contact you soon.
           </p>
           
-          <div className="last-step-section">
+          <div className="last-step-section register-card">
             <h3 className="last-step-title">Last Step:</h3>
             <p className="last-step-instruction">
               Please email copies of your driver's license and car registration to{" "}
