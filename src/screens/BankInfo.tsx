@@ -28,6 +28,7 @@ const BankInfo = () => {
     email?: string;
     plateNumber?: string;
     make?: string;
+    model?: string;
     modelYear?: string;
     color?: string;
   } | null>(null);
