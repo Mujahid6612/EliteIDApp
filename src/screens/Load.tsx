@@ -72,7 +72,11 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
   }
 
   if (!jobData || !jobData.JData || !jobData.JHeader) {
-    return <Spinner functionPassed={handleAllowLocation} />;
+    return (
+      <Spinner
+        functionPassed={() => handleAllowLocation(action)}
+      />
+    );
   }
 
   // Use getJobDetails to extract all job-related data

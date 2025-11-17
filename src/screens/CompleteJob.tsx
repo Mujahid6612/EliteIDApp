@@ -269,7 +269,17 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
 
   // Handle the case where no job data is found [This Part can be reused in all components if we make a helper function]
   if (!jobData || !jobData.JData || !jobData.JHeader) {
-    return <Spinner functionPassed={handleAllowLocation} />;
+    return (
+      <Spinner
+        functionPassed={() =>
+          handleAllowLocation({
+            dropOfLocation,
+            cityState,
+            passegerNameInput,
+          })
+        }
+      />
+    );
   }
 
   // Use getJobDetails to extract job-related values

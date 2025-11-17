@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 interface SpinnerProps {
   size?: string;
   color?: string;
-  functionPassed?: () => void;
+  functionPassed?: (...args: unknown[]) => void | Promise<void>;
   retryInterval?: number;
   onMaxRetries?: () => void;
   disableErrorThrow?: boolean;
