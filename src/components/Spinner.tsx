@@ -3,9 +3,10 @@ import React, { useEffect, useState } from "react";
 interface SpinnerProps {
   size?: string;
   color?: string;
-  functionPassed?: (...args: any[]) => void;
+  functionPassed?: () => void;
   retryInterval?: number;
   onMaxRetries?: () => void;
+  disableErrorThrow?: boolean;
 }
 
 const Spinner: React.FC<SpinnerProps> = ({
@@ -14,6 +15,7 @@ const Spinner: React.FC<SpinnerProps> = ({
   functionPassed,
   retryInterval = 3000,
   onMaxRetries,
+  disableErrorThrow = false,
 }) => {
   const [attempts, setAttempts] = useState(0);
 
@@ -40,8 +42,8 @@ const Spinner: React.FC<SpinnerProps> = ({
     return () => clearInterval(interval);
   }, [functionPassed, retryInterval, onMaxRetries]);
 
-  // Throw error after 3 attempts
-  if (attempts >= 3) {
+  // Throw error after 3 attempts (unless disabled so the parent can handle UI)
+  if (attempts >= 3 && !disableErrorThrow) {
     throw new Error("Something went wrong please refresh this window!");
   }
 

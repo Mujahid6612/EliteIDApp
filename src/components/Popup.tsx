@@ -11,7 +11,9 @@ interface PopupProps {
   popVariantButton?: string;
   secondButtonText?: string;
   popupButtonRedClass?: string;
-  functionpassed?: (params?: any) => void;
+  functionpassed?: () => void;
+  variant?: "info" | "success" | "warning" | "error";
+  disableOutsideClose?: boolean;
 }
 
 const Popup: React.FC<PopupProps> = ({
@@ -24,6 +26,8 @@ const Popup: React.FC<PopupProps> = ({
   secondButtonText,
   popupButtonRedClass,
   functionpassed,
+  variant = "info",
+  disableOutsideClose = false,
 }) => {
   const [isOpen, setIsOpen] = useState(triggerOnLoad);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -40,15 +44,56 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener("mousedown", handleOutsideClick);
-    } else {
-      document.removeEventListener("mousedown", handleOutsideClick);
+    if (!isOpen || disableOutsideClose) {
+      return;
     }
 
+    document.addEventListener("mousedown", handleOutsideClick);
+
     // Cleanup event listener on component unmount
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [isOpen]);
+    return () =>
+      document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isOpen, disableOutsideClose]);
+
+  const getVariantClasses = () => {
+    switch (variant) {
+      case "success":
+        return {
+          container: "popup-card popup-card-success",
+          icon: "popup-icon popup-icon-success",
+        };
+      case "warning":
+        return {
+          container: "popup-card popup-card-warning",
+          icon: "popup-icon popup-icon-warning",
+        };
+      case "error":
+        return {
+          container: "popup-card popup-card-error",
+          icon: "popup-icon popup-icon-error",
+        };
+      default:
+        return {
+          container: "popup-card popup-card-info",
+          icon: "popup-icon popup-icon-info",
+        };
+    }
+  };
+
+  const getVariantIcon = () => {
+    switch (variant) {
+      case "success":
+        return "✓";
+      case "warning":
+        return "!";
+      case "error":
+        return "!";
+      default:
+        return "i";
+    }
+  };
+
+  const { container, icon } = getVariantClasses();
 
   return (
     <>
@@ -68,23 +113,36 @@ const Popup: React.FC<PopupProps> = ({
       {isOpen && (
         <div className="popup-overlay">
           <div className="popup-content" ref={popupRef}>
-            <h2>{popTitle}</h2>
-            <ThemedText themeText={popUpText} classPassed="centertext" />
-            <div className={`${secondButtonText && "d-flex-cen fl-gap"}`}>
-              <ButtonsComponent
-                buttonWidth="110px"
-                popupButtonRedClass={popupButtonRedClass}
-                popVariantButton={popVariantButton}
-                buttonText={PopUpButtonText}
-                functionpassed={functionpassed || togglePopup}
-              />
-              {secondButtonText && (
+            <div className={container}>
+              <div className="popup-header">
+                <div className={icon}>{getVariantIcon()}</div>
+                <div className="popup-title-group">
+                  <h2 className="popup-title">{popTitle}</h2>
+                </div>
+              </div>
+              <div className="popup-body">
+                <ThemedText themeText={popUpText} classPassed="lefttext" />
+              </div>
+              <div
+                className={`popup-actions ${
+                  secondButtonText ? "popup-actions-dual" : ""
+                }`}
+              >
                 <ButtonsComponent
-                  buttonWidth="110px"
-                  buttonText={secondButtonText}
-                  functionpassed={togglePopup}
+                  buttonWidth="100%"
+                  popupButtonRedClass={popupButtonRedClass}
+                  popVariantButton={popVariantButton}
+                  buttonText={PopUpButtonText}
+                  functionpassed={functionpassed || togglePopup}
                 />
-              )}
+                {secondButtonText && (
+                  <ButtonsComponent
+                    buttonWidth="110px"
+                    buttonText={secondButtonText}
+                    functionpassed={togglePopup}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>

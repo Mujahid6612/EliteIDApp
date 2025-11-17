@@ -17,6 +17,7 @@ import { useAuthRefresh } from "../hooks/useAuthRefresh";
 import LocationRequest from "./LocationRequest";
 import Spinner from "../components/Spinner";
 import Unauthorized from "./Unauthorized";
+import Popup from "../components/Popup";
 
 const IndexScreen = () => {
   const [locationPermission, setLocationPermission] = useState<
@@ -26,6 +27,9 @@ const IndexScreen = () => {
   const [retryFailed, setRetryFailed] = useState(false);
   const dispatch = useDispatch();
   const [islogrestricting, setIsLogRestricting] = useState(false);
+
+  const showErrorAlerts =
+    import.meta.env.VITE_SHOW_ERROR_ALERTS === "true";
 
   // Using job-specific selectors
   const jobData = useSelector(
@@ -128,6 +132,25 @@ const IndexScreen = () => {
   }
 
   if (retryFailed) {
+    if (showErrorAlerts) {
+      return (
+        <>
+          <Popup
+            triggerOnLoad={true}
+            popTitle="Oops!"
+            popUpText={
+              "We ran into a problem loading your job details. Tap \"Try again\" to refresh this page. If the error keeps happening even after retrying, please contact our support team."
+            }
+            PopUpButtonText="Try again"
+            variant="error"
+            popVariantButton="primaryPopup"
+            disableOutsideClose
+            functionpassed={() => window.location.reload()}
+          />
+        </>
+      );
+    }
+
     throw new Error("Unable to fetch job data after multiple attempts.");
   }
 
@@ -149,6 +172,7 @@ const IndexScreen = () => {
         functionPassed={fetchJobData}
         retryInterval={3000}
         onMaxRetries={() => setRetryFailed(true)}
+        disableErrorThrow={showErrorAlerts}
       />
     );
   }
