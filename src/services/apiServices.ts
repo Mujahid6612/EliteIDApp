@@ -5,6 +5,57 @@ import axios from "axios";
 
 let lastRequestTime: string | null = null;
 const isProd = import.meta.env.VITE_ENV === "prod";
+const jobAcknowledgedMessage = "Sorry. You can not view this job: Job acknowledged. You may close this browser window now.";
+ 
+/**
+ * Sanitizes error messages to replace technical/server errors with user-friendly messages
+ */
+const sanitizeErrorMessage = (errorMessage: string): string => {
+  // List of technical error patterns that should be replaced with user-friendly messages
+  const technicalErrorPatterns = [
+    {
+      pattern: /Value cannot be null/i,
+      replacement: jobAcknowledgedMessage,
+    },
+    {
+      pattern: /Parameter name:/i,
+      replacement: jobAcknowledgedMessage,
+    },
+    {
+      pattern: /An error has occurred/i,
+      replacement: jobAcknowledgedMessage,
+    },
+    {
+      pattern: /Invalid response from server/i,
+      replacement: jobAcknowledgedMessage,
+    },
+    {
+      pattern: /No data received from server/i,
+      replacement: jobAcknowledgedMessage,
+    },
+  ];
+
+  // Check if the error message matches any technical error pattern
+  for (const { pattern, replacement } of technicalErrorPatterns) {
+    if (pattern.test(errorMessage)) {
+      return replacement;
+    }
+  }
+
+  // If it's a generic server error or unknown error, return user-friendly message
+  if (
+    errorMessage.includes("error") ||
+    errorMessage.includes("Error") ||
+    errorMessage.includes("failed") ||
+    errorMessage.includes("Failed") ||
+    errorMessage.toLowerCase().includes("exception")
+  ) {
+    return jobAcknowledgedMessage;
+  }
+
+  // Return the original message if it seems user-friendly already
+  return errorMessage;
+};
 
 interface ApiProps {
   token: string;
@@ -146,24 +197,106 @@ export const authenticate = async function ({
         },
       }
     );
+    
+    // Check if response status indicates an error
+    if (response.status < 200 || response.status >= 300) {
+      const rawErrorMessage = typeof response.data === 'string' 
+        ? response.data 
+        : (response.data as { Message?: string })?.Message || `Server returned status ${response.status}`;
+      // Return in the expected format with JHeader structure, with sanitized error message
+      return {
+        JHeader: {
+          ActionCode: 1,
+          Message: sanitizeErrorMessage(rawErrorMessage),
+          SysVersion: "",
+        },
+      };
+    }
+    
     //let responseParsed = JSON.parse(response.data);
     let responseParsed;
     if (response.data) {
-      responseParsed = JSON.parse(response.data);
+      // Check if response.data is already an object (axios may have auto-parsed it)
+      if (typeof response.data === 'string') {
+        try {
+          responseParsed = JSON.parse(response.data);
+        } catch {
+          // If parsing fails, it's likely an error message, not JSON
+          // Return in the expected format with JHeader structure, with sanitized error message
+          const rawMessage = response.data || "Invalid response from server";
+          return {
+            JHeader: {
+              ActionCode: 1,
+              Message: sanitizeErrorMessage(rawMessage),
+              SysVersion: "",
+            },
+          };
+        }
+      } else {
+        // Already an object, use it directly
+        responseParsed = response.data;
+      }
     }
+    // Ensure responseParsed exists before accessing properties
+    if (!responseParsed) {
+      return {
+        JHeader: {
+          ActionCode: 1,
+          Message: sanitizeErrorMessage("No data received from server"),
+          SysVersion: "",
+        },
+      };
+    }
+    
     console.log(
       "Response:++++++++++++++++++++++++++++++++++++++++++++++++++++",
       responseParsed
     );
     console.log(
       "Response:++++++++++++++++++++++++++++++++++++++++++++++++++++",
-      responseParsed.JHeader?.ActionCode == 0
+      responseParsed?.JHeader?.ActionCode == 0
     );
-    if (response.data) {
-      return responseParsed;
-    }
+    
+    return responseParsed;
   } catch (error: unknown) {
     console.error("Error=================================:", error);
+    
+    // Handle AxiosError specifically to extract response data
+    if (axios.isAxiosError(error) && error.response) {
+      const responseData = error.response.data;
+      
+      // Try to extract error message from response
+      if (typeof responseData === 'string') {
+        // If it's a plain string error message (like "Value cannot be null. Parameter name: s")
+        return {
+          JHeader: {
+            ActionCode: 1,
+            Message: sanitizeErrorMessage(responseData),
+            SysVersion: "",
+          },
+        };
+      } else if (typeof responseData === 'object' && responseData !== null) {
+        // If it's already an object (like {"Message": "An error has occurred."})
+        const rawErrorMessage = (responseData as { Message?: string }).Message || "An error occurred on the server";
+        return {
+          JHeader: {
+            ActionCode: 1,
+            Message: sanitizeErrorMessage(rawErrorMessage),
+            SysVersion: "",
+          },
+        };
+      }
+    }
+    
+    // Fallback for other error types
+    const fallbackMessage = error instanceof Error ? error.message : "An error occurred";
+    return {
+      JHeader: {
+        ActionCode: 1,
+        Message: sanitizeErrorMessage(fallbackMessage),
+        SysVersion: "",
+      },
+    };
   }
 };
 

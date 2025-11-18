@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import { RootState } from "../store/store";
@@ -62,7 +62,7 @@ const IndexScreen = () => {
     checkLocationPermission();
   }, []);
 
-  const fetchJobData = async () => {
+  const fetchJobData = useCallback(async () => {
     if (!jobId) return;
     try {
       const token = jobId;
@@ -73,21 +73,52 @@ const IndexScreen = () => {
         viewName: "AUTH",
       });
 
-      if (res?.JHeader?.ActionCode == 0) {
+      // Always dispatch the response, whether it's success (ActionCode == 0) or error (ActionCode > 0)
+      // This ensures error responses are stored and can be displayed by the Unauthorized component
+      if (res && res.JHeader) {
         dispatch(setJobData({ jobId, data: res }));
+      } else if (res) {
+        // If response doesn't have JHeader structure, wrap it
+        dispatch(setJobData({ 
+          jobId, 
+          data: {
+            JHeader: {
+              ActionCode: 1,
+              Message: res.Message || "Unknown error occurred",
+              SysVersion: "",
+            },
+            JMetaData: {
+              Headings: [],
+            },
+            JData: [],
+          },
+        }));
       }
-
-      //dispatch(setJobData({ jobId, data: res }));
     } catch (error) {
       console.error("Error fetching job data", error);
+      // Dispatch error response so Unauthorized component can show it
+      dispatch(setJobData({ 
+        jobId, 
+        data: {
+          JHeader: {
+            ActionCode: 1,
+            Message: error instanceof Error ? error.message : "An error occurred while fetching job data",
+            SysVersion: "",
+          },
+          JMetaData: {
+            Headings: [],
+          },
+          JData: [],
+        },
+      }));
     }
-  };
+  }, [jobId, dispatch]);
 
   useEffect(() => {
     if (locationPermission === "granted" && !jobData) {
       fetchJobData();
     }
-  }, [jobId, jobData, locationPermission, dispatch]);
+  }, [jobId, jobData, locationPermission, fetchJobData]);
 
   useEffect(() => {
     if (
