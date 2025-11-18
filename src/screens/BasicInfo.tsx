@@ -317,7 +317,7 @@ const BasicInfo = () => {
       <div className="form-container">
         <button
           className="back-button"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/join-us")}
           aria-label="Go back"
         >
           <span className="back-arrow">

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import "./App.css";
 // Screens
 import IndexScreen from "./screens/IndexScreen";
@@ -18,10 +18,12 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Redirect root path to join-us */}
+        <Route path="/" element={<Navigate to="/join-us" replace />} />
         {/* Fallback to redirect to the appropriate screen based on job status */}
         <Route path="/:jobId/vouchers" element={<VoucherList />} />
         <Route path="/:jobId/*" element={<IndexScreen />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/join-us" element={<Home />} />
         <Route path="/basic-info" element={<BasicInfo />} />
         <Route path="/bank-info" element={<BankInfo />} />
         <Route path="/payment-options" element={<PaymentOptions />} />

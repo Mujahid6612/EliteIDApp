@@ -42,7 +42,7 @@ const Success = () => {
           
           <button
             className="back-button"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/join-us")}
             aria-label="Go back to home"
             style={{ marginTop: "30px" }}
           >
