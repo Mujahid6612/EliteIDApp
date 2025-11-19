@@ -162,16 +162,49 @@ const IndexScreen = () => {
     throw new Error("Unable to fetch job data after multiple attempts.");
   }
 
-  if (Number(jobData?.JHeader?.ActionCode) > 0) {
-    return <Unauthorized message={jobData?.JHeader?.Message} />;
-  }
-
+  // Normalize action codes from both AUTH (jobData) and LOG (responseFromLog) calls
+  const jobActionCode = Number(jobData?.JHeader?.ActionCode ?? 0);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-expect-error
-  if (Number(responseFromLog?.JHeader?.ActionCode) > 0) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-expect-error
-    return <Unauthorized message={responseFromLog?.JHeader?.Message} />;
+  const logActionCode = Number(responseFromLog?.JHeader?.ActionCode ?? 0);
+
+  console.log("[IndexScreen] jobData.JHeader.ActionCode =", jobData?.JHeader?.ActionCode);
+  console.log("[IndexScreen] normalized jobActionCode =", jobActionCode);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-expect-error
+  console.log("[IndexScreen] responseFromLog.JHeader.ActionCode =", responseFromLog?.JHeader?.ActionCode);
+  console.log("[IndexScreen] normalized logActionCode =", logActionCode);
+
+  // If we have at least one successful response (ActionCode === 0),
+  // we should NOT show the Unauthorized screen.
+  const hasSuccess =
+    (!!jobData && jobActionCode === 0) ||
+    (!!responseFromLog && logActionCode === 0);
+
+  console.log("[IndexScreen] hasSuccess (either AUTH or LOG is success) =", hasSuccess);
+
+  if (!hasSuccess) {
+    if (jobActionCode > 0) {
+      console.log("[IndexScreen] Rendering Unauthorized due to AUTH error", {
+        jobActionCode,
+        message: jobData?.JHeader?.Message,
+      });
+      return <Unauthorized message={jobData?.JHeader?.Message} />;
+    }
+    if (logActionCode > 0) {
+      console.log("[IndexScreen] Rendering Unauthorized due to LOG error", {
+        logActionCode,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-expect-error
+        message: responseFromLog?.JHeader?.Message,
+      });
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-expect-error
+      return <Unauthorized message={responseFromLog?.JHeader?.Message} />;
+    }
+    console.log("[IndexScreen] No success and no explicit error code; continuing to loading/route logic.");
+  } else {
+    console.log("[IndexScreen] At least one success response detected; proceeding to job screens.");
   }
 
   if (!jobData || !jobData.JHeader) {

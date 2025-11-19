@@ -179,8 +179,23 @@ export const authenticate = async function ({
     actualPayload = inpayload;
   }
 
-  // Convert the object to a JSON string with proper escaping
-  const finalPayload = JSON.stringify(actualPayload);
+  /**
+   * IMPORTANT:
+   * The backend `ProcessRequest` API expects the ENTIRE JSON object
+   * as a single JSON string value, e.g.:
+   *
+   * "{ \"ActionCode\":\"S.ID.ACTION.P\", ... }"
+   *
+   * That means:
+   *  - First we serialize the object → '{"ActionCode":"S.ID.ACTION.P",...}'
+   *  - Then we serialize that string again so the HTTP body is:
+   *    "{\"ActionCode\":\"S.ID.ACTION.P\",...}"
+   *
+   * This matches the exact escaped string format required by the API.
+   */
+  const objectAsJsonString = JSON.stringify(actualPayload);
+  const finalPayload = JSON.stringify(objectAsJsonString);
+
   console.log(
     "Payload:++++++++++++++++++++++++++++++++++++++++++++++++++++",
     finalPayload
