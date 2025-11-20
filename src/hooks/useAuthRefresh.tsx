@@ -5,15 +5,25 @@ import { useParams } from "react-router-dom";
 import { setJobData } from "../store/authSlice";
 import type { JobApiResponse } from "../types";
 
-export const useAuthRefresh = () => {
+// `enablePolling` controls when LOG polling should start.
+// This allows IndexScreen to delay LOG calls until after AUTH has succeeded
+// and initial job data has been loaded.
+export const useAuthRefresh = (enablePolling: boolean) => {
   const dispatch = useDispatch();
   const { jobId } = useParams<{ jobId: string }>();
   const [responseFromLog, setResponseFromLog] = useState(null);
 
   useEffect(() => {
-    if (!jobId) return;
+    if (!jobId || !enablePolling) return;
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let stopPolling = false; // stop further LOG calls after a hard error
 
     const refreshAuth = async () => {
+      if (stopPolling) {
+        return;
+      }
+
       try {
         console.log("Refreshing authentication...");
         const response = await authenticate({
@@ -41,6 +51,19 @@ export const useAuthRefresh = () => {
               data: response as JobApiResponse,
             })
           );
+        } else if (actionCode > 0) {
+          // Hard error (e.g., invalid/expired token, job acknowledged, etc.)
+          // No value in continuing to poll LOG – stop the interval.
+          console.log(
+            "[useAuthRefresh] Stopping LOG polling due to error ActionCode",
+            actionCode,
+            "message:",
+            response?.JHeader?.Message
+          );
+          stopPolling = true;
+          if (intervalId) {
+            clearInterval(intervalId);
+          }
         }
       } catch (error) {
         console.error("Error refreshing authentication", error);
@@ -49,12 +72,17 @@ export const useAuthRefresh = () => {
 
     refreshAuth(); // Initial call
 
-    const intervalId = setInterval(() => {
+    intervalId = setInterval(() => {
       refreshAuth();
     }, 50000); // Call every 60 seconds
 
-    return () => clearInterval(intervalId);
-  }, [jobId, dispatch]);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      stopPolling = true;
+    };
+  }, [jobId, dispatch, enablePolling]);
 
   return responseFromLog;
 };

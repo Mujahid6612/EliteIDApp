@@ -34,7 +34,12 @@ const IndexScreen = () => {
   const currentRoute = useSelector(
     (state: RootState) => state.currentView.currentRoutes[jobId || ""]
   );
-  const resfromlogView = useAuthRefresh();
+  // Start LOG polling only after AUTH has succeeded (ActionCode === 0)
+  const jobActionCodeForPolling = Number(jobData?.JHeader?.ActionCode ?? 1);
+  const shouldStartLogPolling =
+    !!jobData && jobActionCodeForPolling === 0;
+
+  const resfromlogView = useAuthRefresh(shouldStartLogPolling);
   const [responseFromLog, setResponseFromLog] = useState(resfromlogView);
   useEffect(() => {
     if (resfromlogView) {

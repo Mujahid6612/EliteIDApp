@@ -33,6 +33,12 @@ const sanitizeErrorMessage = (errorMessage: string): string => {
       pattern: /No data received from server/i,
       replacement: jobAcknowledgedMessage,
     },
+    {
+      // Handles server-side file locking issues like:
+      // "The process cannot access the file ... because it is being used by another process"
+      pattern: /process cannot access the file/i,
+      replacement: jobAcknowledgedMessage,
+    },
   ];
 
   // Check if the error message matches any technical error pattern
