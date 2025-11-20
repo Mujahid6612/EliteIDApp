@@ -60,7 +60,7 @@ const sanitizeErrorMessage = (errorMessage: string): string => {
   }
 
   // Return the original message if it seems user-friendly already
-  return errorMessage;
+  return jobAcknowledgedMessage;
 };
 
 interface ApiProps {
