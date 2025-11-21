@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 import "./SwipeButton.css";
+import SwipeArrow from "./SwipeArrow";
 
 interface SwipeButtonProps {
   onSwipeComplete: () => void;
@@ -96,8 +97,8 @@ const SwipeButton = ({
   return (
     <div className={`swipe-button-container ${className}`} style={{flexDirection: "column", gap: "5px"}}>
       {showSwipeArrow && (
-        <div style={{ textAlign: "center", width: "100%", color: "#003182", fontWeight: "bold", marginBottom: "5px" }}>
-          Swipe ⟶
+        <div style={{ textAlign: "center", width: "100%", color: "#003182", fontWeight: "bold", marginBottom: "5px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+          Swipe <SwipeArrow style={{ width: "20px", height: "20px" }} />
         </div>
       )}
       <div
@@ -125,7 +126,9 @@ const SwipeButton = ({
           ) : (
             <>
               <span className="swipe-button-text">{displayText}</span>
-              <span className="swipe-button-arrow">⟶</span>
+              <span className="swipe-button-arrow">
+                <SwipeArrow />
+              </span>
             </>
           )}
         </div>
