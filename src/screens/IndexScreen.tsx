@@ -1,8 +1,8 @@
-// Testing IndexScreenTest - rendering the optimized version
-import IndexScreenTest from "./IndexScreenTest";
+// Testing NewIndexScreen - rendering the optimized version
+import NewIndexScreen from "./NewIndexScreen";
 
 const IndexScreen = () => {
-  return <IndexScreenTest />;
+  return <NewIndexScreen />;
 };
 
 export default IndexScreen;

@@ -17,12 +17,13 @@ import LocationRequest from "./LocationRequest";
 import IndexScreenLoader from "../components/IndexScreenLoader";
 import Unauthorized from "./Unauthorized";
 import type { JobApiResponse } from "../types";
+import { normalizeErrorMessage } from "../utils/normalizeErrorMessage";
 
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 3000;
 const LOG_POLLING_INTERVAL = 50000;
 
-const IndexScreenTest = () => {
+const NewIndexScreen = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const dispatch = useDispatch();
   
@@ -264,9 +265,12 @@ const IndexScreenTest = () => {
   }
 
   // Check if AUTH failed
-  const actionCode = Number(authResponse?.JHeader?.ActionCode ?? 0);
-  if (actionCode > 0) {
-    return <Unauthorized message={authResponse?.JHeader?.Message} />;
+  // Use jobData from Redux (same as old IndexScreen) instead of authResponse state
+  const jobActionCode = Number(jobData?.JHeader?.ActionCode ?? 0);
+  if (jobActionCode > 0) {
+    // Normalize error message using helper function (same approach as old IndexScreen)
+    const normalizedMessage = normalizeErrorMessage(jobData?.JHeader?.Message);
+    return <Unauthorized message={normalizedMessage} />;
   }
 
   // AUTH succeeded - show appropriate screen based on current route
@@ -299,5 +303,5 @@ const IndexScreenTest = () => {
   return getComponentForStatus(currentRoute || "/");
 };
 
-export default IndexScreenTest;
+export default NewIndexScreen;
 
