@@ -1,3 +1,16 @@
+// Testing IndexScreenTest - rendering the optimized version
+import IndexScreenTest from "./IndexScreenTest";
+
+const IndexScreen = () => {
+  return <IndexScreenTest />;
+};
+
+export default IndexScreen;
+
+/* ============================================
+   ORIGINAL INDEXSCREEN CODE (COMMENTED OUT)
+   ============================================
+
 import { useEffect, useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -253,6 +266,7 @@ const IndexScreen = () => {
 };
 
 export default IndexScreen;
+*/
 
 //import { persistor } from "../store/store";
 /*
