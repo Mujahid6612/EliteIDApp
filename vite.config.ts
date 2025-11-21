@@ -19,7 +19,7 @@ export default defineConfig({
   // ✅ 3. Disable Vite Build Cache (for production builds)
   build: {
     assetsInlineLimit: 0, // Prevents aggressive asset inlining
-    sourcemap: true, // Include sourcemaps for debugging
+    sourcemap: false, // Include sourcemaps for debugging
     minify: true, // Enable minification for production builds
   },
 });
