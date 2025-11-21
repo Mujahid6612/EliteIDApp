@@ -227,14 +227,6 @@ const JobOffer = ({ islogrestricting }: Props) => {
             disabled={isRejecting}
             loading={isRejecting}
           />
-          <Popup
-            triggerOnLoad={true}
-            popTitle="Welcome to Driver App"
-            popUpText="Thanks. Please keep this app open at all times to get jobs notification. Dispatcher might sign you off if job notifications cannot reach you."
-            PopUpButtonText="Ok"
-          />
-          */
-          }
         </>
       ) : (
         <div>
