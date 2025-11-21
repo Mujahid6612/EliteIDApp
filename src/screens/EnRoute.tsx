@@ -13,9 +13,8 @@ import { RootState } from "../store/store";
 import { setCurrentRoute } from "../store/currentViewSlice";
 // import Popup from "../components/Popup";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
-import { getJobDetails } from "../utils/JobDataVal"; // Assuming you import this utility
+import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal"; // Assuming you import this utility
 import { useEffect, useState } from "react";
-import { textMapper } from "../functions/text-mapper";
 import SwipeButton from "../components/SwipeButton";
 
 interface Props {
@@ -75,14 +74,11 @@ const EnRoute = ({ islogrestricting }: Props) => {
     passengerPhone,
     passengerNameHeading,
     passengerPhoneHeading,
-    showButtonArrive,
   } = getJobDetails(jobData);
-
-  console.log("showButtonArrive", showButtonArrive);
 
   return (
     <>
-      <HeaderLayout screenName={String(jobOffer)} />
+      <HeaderLayout screenName={getDisplayTitle(String(jobOffer))} />
       <JobdetailsHeader
         JobidPassed={String(jobIdFromRes)}
         jobNumber={String(jobNumber)}
@@ -118,10 +114,11 @@ const EnRoute = ({ islogrestricting }: Props) => {
         functionpassed={handleAllowLocation}
       /> */}
       <SwipeButton
-        text={textMapper(String(showButtonArrive))}
+        text="On Location"
         onSwipeComplete={handleAllowLocation}
         disabled={loading}
         loading={loading}
+        showSwipeArrow={true}
       />
     </>
   );

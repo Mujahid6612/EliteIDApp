@@ -70,6 +70,7 @@ interface ApiProps {
   dropOfLocationSer?: string; // Optional
   cityStateSer?: string; // Optional
   passegerNameInputSer?: string; // Optional
+  tollsSer?: string; // Optional
 }
 
 export const authenticate = async function ({
@@ -79,6 +80,7 @@ export const authenticate = async function ({
   dropOfLocationSer,
   cityStateSer,
   passegerNameInputSer,
+  tollsSer,
 }: ApiProps) {
   const currentTime = new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -174,6 +176,7 @@ export const authenticate = async function ({
         p_PARAM_1: cityStateSer,
         p_PARAM_2: dropOfLocationSer,
         p_PARAM_3: passegerNameInputSer,
+        p_PARAM_4: tollsSer,
       },
     },
     Notes: "Test... by Kazim",

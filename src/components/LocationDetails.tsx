@@ -38,18 +38,22 @@ interface LocationDetailsInputProps {
   pickupAddress: string;
   onDropOfLocationChange: (value: string) => void;
   onCityStateChange: (value: string) => void;
+  onTollsChange: (value: string) => void;
   prefilledDropOfLocation: string;
   cityState: string;
   dropOfLocation: string;
+  tolls: string;
 }
 
 const LocationDetailsInput = ({
   pickupAddress,
   onDropOfLocationChange,
   onCityStateChange,
+  onTollsChange,
   prefilledDropOfLocation,
   cityState,
   dropOfLocation,
+  tolls,
 }: LocationDetailsInputProps) => {
   return (
     <div className="location-container">
@@ -77,6 +81,13 @@ const LocationDetailsInput = ({
             valueTrue={true}
             value={dropOfLocation}
             onChange={(e) => onDropOfLocationChange(e.target.value)}
+          />
+          <p className="secoundaru-text ">Tolls:</p>
+          <TextField
+            placeHolderTextInput="Tolls"
+            valueTrue={false}
+            value={tolls}
+            onChange={(e) => onTollsChange(e.target.value)}
           />
         </div>
       </div>

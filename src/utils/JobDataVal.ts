@@ -20,6 +20,19 @@ export const getButtonLabelFromData = (data: any, key: string) => {
   return null;
 };
 
+// Map API status values to display titles
+export const getDisplayTitle = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    "Job Offer": "Trip Offer",
+    "Job Accepted": "On Call",
+    "On-Scene": "On Location",
+    "On-scene": "On Location",
+    "Load": "P.O.B",
+  };
+  
+  return statusMap[status] || status;
+};
+
 
 export const getJobDetails = (data: any) => {
   return {

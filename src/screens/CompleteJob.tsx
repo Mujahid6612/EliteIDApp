@@ -17,7 +17,7 @@ import { RootState } from "../store/store";
 import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
-import { getJobDetails } from "../utils/JobDataVal";
+import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal";
 import { voucherFileNameGenerator } from "../functions/voucher-file-name-generator";
 import SwipeButton from "../components/SwipeButton";
 
@@ -39,6 +39,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
   // State for input fields
   const [dropOfLocation, setDropOfLocation] = useState("");
   const [cityState, setCityState] = useState("");
+  const [tolls, setTolls] = useState("");
   const [passegerNameInput, setPassengerNameInput] = useState("");
   const [voucherFile, setVoucherFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -193,33 +194,35 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     dropOfLocation,
     cityState,
     passegerNameInput,
-  }: PropsforLocation) => {
+  }: PropsforLocation, skipValidation = false) => {
     if (isSubmitting) {
       return;
     }
 
-    const missingFields: string[] = [];
-    if (!voucherFile) {
-      missingFields.push("Voucher attachment");
-    }
-    if (!dropOfLocation.trim()) {
-      missingFields.push("Drop off location");
-    }
-    if (!cityState.trim()) {
-      missingFields.push("Voucher details");
-    }
+    if (!skipValidation) {
+      const missingFields: string[] = [];
+      if (!voucherFile) {
+        missingFields.push("Voucher attachment");
+      }
+      if (!dropOfLocation.trim()) {
+        missingFields.push("Drop off location");
+      }
+      if (!cityState.trim()) {
+        missingFields.push("Voucher details");
+      }
 
-    if (missingFields.length > 0) {
-      const fieldsText = missingFields.join(" and ");
-      setValidationMessage(
-        `${fieldsText} ${
-          missingFields.length > 1 ? "are" : "is"
-        } required. Please complete the field${
-          missingFields.length > 1 ? "s" : ""
-        } before proceeding.`
-      );
-      setShowValidationPopup(true);
-      return;
+      if (missingFields.length > 0) {
+        const fieldsText = missingFields.join(" and ");
+        setValidationMessage(
+          `${fieldsText} ${
+            missingFields.length > 1 ? "are" : "is"
+          } required. Please complete the field${
+            missingFields.length > 1 ? "s" : ""
+          } before proceeding.`
+        );
+        setShowValidationPopup(true);
+        return;
+      }
     }
 
     // Validation
@@ -234,7 +237,11 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     setIsSubmitting(true);
 
     try {
-      await uploadVoucherFile(jobId);
+      // Only upload voucher if it exists (skip logic allows proceeding without it)
+      if (voucherFile) {
+        await uploadVoucherFile(jobId);
+      }
+      
       const res = await authenticate({
         token: jobId,
         actionType: "SAVE",
@@ -242,6 +249,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
         dropOfLocationSer: dropOfLocation,
         cityStateSer: cityState,
         passegerNameInputSer: passegerNameInput,
+        tollsSer: tolls,
       });
       dispatch(setJobData({ jobId, data: res }));
       const currentViwe = res.JData?.[0]?.[0];
@@ -280,13 +288,12 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     reservationDateTime,
     pickupAddress,
     passengerName,
-    showButtonSave,
   } = getJobDetails(jobData);
 
   // showButtonSave -> SAVE JOB INFO
   return (
     <>
-      <HeaderLayout screenName={String(jobOffer)} />
+      <HeaderLayout screenName={getDisplayTitle(String(jobOffer))} />
       <JobdetailsHeader
         JobidPassed={String(jobIdFromRes)}
         jobNumber={String(jobNumber)}
@@ -297,10 +304,12 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
       <LocationDetailsInput
         onDropOfLocationChange={setDropOfLocation}
         onCityStateChange={setCityState}
+        onTollsChange={setTolls}
         pickupAddress={String(pickupAddress)}
         prefilledDropOfLocation={dropOfLocation}
         cityState={cityState}
         dropOfLocation={dropOfLocation}
+        tolls={tolls}
       />
       <PassengerInfoInput
         passengerName={String(passengerName)}
@@ -362,7 +371,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
                     backgroundColor: "#d93025",
                   }}
                 >
-                  Remove and Re-select Voucher
+                  Redo
                 </button>
               </div>
               {/* Preview image of the voucher file */}
@@ -429,7 +438,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
             }
           /> */}
           <SwipeButton
-            text={showButtonSave}
+            text="Save Billing Info"
             onSwipeComplete={() =>
               handleAllowLocation({
                 dropOfLocation,
@@ -437,7 +446,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
                 passegerNameInput: passegerNameInput,
               })
             }
-            disabled={isSubmitting}
+            disabled={!voucherFile && !isSubmitting} // Disabled if no voucher, unless submitting (skip logic below)
             loading={isSubmitting}
           />
         </>
@@ -447,8 +456,17 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           triggerOnLoad={true}
           popTitle="Validation Error"
           popUpText={validationMessage}
-          PopUpButtonText="Ok"
-          functionpassed={() => setShowValidationPopup(false)} // Close popup on "Ok"
+          PopUpButtonText="Redo"
+          secondButtonText="Skip"
+          functionpassed={() => setShowValidationPopup(false)}
+          functionSecondButton={() => {
+             setShowValidationPopup(false);
+             handleAllowLocation({
+                dropOfLocation,
+                cityState,
+                passegerNameInput,
+             }, true); // Pass skip flag
+          }}
           popupButtonRedClass="secondaryPopup"
         />
       )}

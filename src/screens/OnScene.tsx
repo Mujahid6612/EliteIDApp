@@ -13,7 +13,7 @@ import { RootState } from "../store/store";
 import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
-import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
+import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal"; // Import the utility function
 import { useEffect, useState } from "react";
 import SwipeButton from "../components/SwipeButton";
 
@@ -75,12 +75,11 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
     passengerPhone,
     passengerNameHeading,
     passengerPhoneHeading,
-    showButtonStart,
   } = getJobDetails(jobData);
 
   return (
     <>
-      <HeaderLayout screenName={String(jobOffer)} />
+      <HeaderLayout screenName={getDisplayTitle(String(jobOffer))} />
       <JobdetailsHeader
         JobidPassed={String(jobIdFromRes)}
         jobNumber={String(jobNumber)}
@@ -115,10 +114,11 @@ const OnScene = ({ islogrestricting }: { islogrestricting: boolean }) => {
         functionpassed={handleAllowLocation}
       /> */}
       <SwipeButton
-        text={showButtonStart}
+        text="Start Trip"
         onSwipeComplete={handleAllowLocation}
         disabled={loading}
         loading={loading}
+        showSwipeArrow={true}
       />
     </>
   );

@@ -14,7 +14,7 @@ import { setJobData } from "../store/authSlice";
 import { RootState } from "../store/store";
 import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
-import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
+import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal"; // Import the utility function
 import { useEffect } from "react";
 import SwipeButton from "../components/SwipeButton";
 
@@ -87,14 +87,11 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
     passengerPhone,
     passengerNameHeading,
     passengerPhoneHeading,
-    showButtonEnd,
-    showButtonAddStop,
-    showButtonStart,
   } = getJobDetails(jobData);
 
   return (
     <>
-      <HeaderLayout screenName={String(jobOffer)} />
+      <HeaderLayout screenName={getDisplayTitle(String(jobOffer))} />
       <JobdetailsHeader
         JobidPassed={String(jobIdFromRes)}
         jobNumber={String(jobNumber)}
@@ -119,9 +116,10 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
       )}
       {!isStopAdded && (
         <SwipeButton
-          text={showButtonAddStop}
+          text="Add stop"
           onSwipeComplete={handleAddStop}
           type="danger"
+          showSwipeArrow={true}
         />
       )}
       <div className="mb-20"></div>
@@ -138,7 +136,7 @@ const Load = ({ islogrestricting }: { islogrestricting: boolean }) => {
           functionpassed={() => handleAllowLocation(action)}
         /> */}
         <SwipeButton
-          text={isStopAdded ? showButtonStart : showButtonEnd}
+          text={isStopAdded ? "Start Trip" : "End Trip"}
           onSwipeComplete={() => handleAllowLocation(action)}
           disabled={endingRide}
           loading={endingRide}

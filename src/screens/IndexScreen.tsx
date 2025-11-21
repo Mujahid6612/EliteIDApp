@@ -228,10 +228,13 @@ const IndexScreen = () => {
       case "Job Offer":
         return <JobOffer islogrestricting={islogrestricting} />;
       case "Job Accepted":
+      case "On Call":
         return <EnRoute islogrestricting={islogrestricting} />;
       case "On-scene":
+      case "On Location":
         return <OnScene islogrestricting={islogrestricting} />;
       case "Load":
+      case "P.O.B":
         return <Load islogrestricting={islogrestricting} />;
       case "Unload":
         return <CompleteJob islogrestricting={islogrestricting} />;

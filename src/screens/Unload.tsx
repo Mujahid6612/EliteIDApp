@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import Unauthorized from "./Unauthorized";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
-import { getJobDetails } from "../utils/JobDataVal"; // Import the utility function
+import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal"; // Import the utility function
 import { useParams } from "react-router-dom";
 
 const Unload = () => {
@@ -22,7 +22,7 @@ const Unload = () => {
   const { jobOffer, jobIdFromRes, jobNumber } = getJobDetails(jobData);
   return (
     <>
-      <HeaderLayout screenName={String(jobOffer)} />
+      <HeaderLayout screenName={getDisplayTitle(String(jobOffer))} />
       <JobdetailsHeader
         JobidPassed={String(jobIdFromRes)}
         jobNumber={String(jobNumber)}

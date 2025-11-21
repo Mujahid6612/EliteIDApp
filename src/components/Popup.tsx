@@ -12,6 +12,7 @@ interface PopupProps {
   secondButtonText?: string;
   popupButtonRedClass?: string;
   functionpassed?: (params?: any) => void;
+  functionSecondButton?: () => void;
 }
 
 const Popup: React.FC<PopupProps> = ({
@@ -24,6 +25,7 @@ const Popup: React.FC<PopupProps> = ({
   secondButtonText,
   popupButtonRedClass,
   functionpassed,
+  functionSecondButton,
 }) => {
   const [isOpen, setIsOpen] = useState(triggerOnLoad);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -82,7 +84,7 @@ const Popup: React.FC<PopupProps> = ({
                 <ButtonsComponent
                   buttonWidth="110px"
                   buttonText={secondButtonText}
-                  functionpassed={togglePopup}
+                  functionpassed={functionSecondButton || togglePopup}
                 />
               )}
             </div>
