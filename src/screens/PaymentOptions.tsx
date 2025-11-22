@@ -6,6 +6,7 @@ import ButtonsComponent from "../components/ButtonsComponent";
 import { getBankNameFromRouting } from "../services/bankService";
 import { sendPaymentOptionsEmail } from "../services/emailService";
 import { PAYMENT_OPTIONS, US_STATES, PICKUP_CHECK_INFO } from "../constants";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import "../styles/Form.css";
 
 const PaymentOptions = () => {
@@ -605,7 +606,7 @@ const PaymentOptions = () => {
 
         // Store payment option in localStorage
         localStorage.setItem("paymentOption", JSON.stringify(paymentOptionsPayload));
-        navigate("/success");
+        navigate(addTimestampParam("/success"));
       } catch (error) {
         console.error("Error sending payment options email:", error);
         alert("Failed to submit. Please try again.");
@@ -672,7 +673,7 @@ const PaymentOptions = () => {
 
         // Store payment option in localStorage
         localStorage.setItem("paymentOption", JSON.stringify(paymentOptionsPayload));
-        navigate("/success");
+        navigate(addTimestampParam("/success"));
       } catch (error) {
         console.error("Error sending payment options email:", error);
         alert("Failed to submit. Please try again.");
@@ -714,7 +715,7 @@ const PaymentOptions = () => {
 
         // Store payment option in localStorage
         localStorage.setItem("paymentOption", JSON.stringify(paymentOptionsPayload));
-        navigate("/success");
+        navigate(addTimestampParam("/success"));
       } catch (error) {
         console.error("Error sending payment options email:", error);
         alert("Failed to submit. Please try again.");
@@ -731,7 +732,7 @@ const PaymentOptions = () => {
       <div className="form-container">
         <button
           className="back-button"
-          onClick={() => navigate("/basic-info")}
+          onClick={() => navigate(addTimestampParam("/basic-info"))}
           aria-label="Go back"
         >
           <span className="back-arrow">

@@ -1,3 +1,5 @@
+import { addTimestampParam } from "../utils/addTimestampParam";
+
 interface BankInfoData {
   accountName: string;
   phone: string;
@@ -27,7 +29,7 @@ interface PaymentOptionsData {
 
 export const sendBankInfoEmail = async (data: BankInfoData): Promise<void> => {
   try {
-    const response = await fetch("/api/send-bank-info-email", {
+    const response = await fetch(addTimestampParam("/api/send-bank-info-email"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +55,7 @@ export const sendPaymentOptionsEmail = async (
 ): Promise<void> => {
   try {
     // Use the existing bank-info-email endpoint which now handles all payment options
-    const response = await fetch("/api/send-bank-info-email", {
+    const response = await fetch(addTimestampParam("/api/send-bank-info-email"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

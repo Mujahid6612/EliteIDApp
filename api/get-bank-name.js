@@ -4,10 +4,18 @@
  * Falls back through multiple APIs
  */
 
+// Helper function to add timestamp parameter to URLs
+const addTimestampParam = (url) => {
+  if (!url) return url;
+  const ts = Date.now();
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}ts=${ts}`;
+};
+
 const tryAPI1 = async (routingNumber) => {
   // API 1: Call bankrouting.io directly from the server (no CORS issues server-side)
   const url = `https://bankrouting.io/api/v1/aba/${routingNumber}`;
-  const response = await fetch(url, {
+  const response = await fetch(addTimestampParam(url), {
     method: 'GET',
     headers: {
       'Accept': 'application/json',
@@ -54,7 +62,7 @@ const tryAPI2 = async (routingNumber) => {
   // API 2: routingnumbers.info has become unreliable (redirects/HTML).
   // Keep as best-effort with strict JSON/content-type checks.
   const response = await fetch(
-    `https://www.routingnumbers.info/api/data.json?rn=${routingNumber}`,
+    addTimestampParam(`https://www.routingnumbers.info/api/data.json?rn=${routingNumber}`),
     {
       method: 'GET',
       headers: {
@@ -92,7 +100,7 @@ const tryAPI2 = async (routingNumber) => {
 const tryAPI3 = async (routingNumber) => {
   // API 3: Alternative fedrouting API
   const response = await fetch(
-    `https://api.fedrouting.org/api/v1/aba/${routingNumber}`,
+    addTimestampParam(`https://api.fedrouting.org/api/v1/aba/${routingNumber}`),
     {
       method: 'GET',
       headers: {

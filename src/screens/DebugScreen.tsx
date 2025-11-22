@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { addTimestampParam } from "../utils/addTimestampParam";
 
 interface DebugResponse {
   actionType: string;
@@ -25,7 +26,7 @@ const DebugScreen: React.FC = () => {
   // Separate function to fetch client IP
   const fetchClientIP = async (): Promise<string> => {
     try {
-      const response = await fetch("https://api.ipify.org?format=json");
+      const response = await fetch(addTimestampParam("https://api.ipify.org?format=json"));
       const data = await response.json();
       return data.ip || "Unknown IP";
     } catch (error) {
@@ -182,10 +183,11 @@ const DebugScreen: React.FC = () => {
         param4
       );
 
+      const apiUrl = isProd
+        ? "https://idapi.eliteny.com/Web/DBAPI/ProcessRequest"
+        : "https://dev-idapi.eliteny.com/Web/DBAPI/ProcessRequest";
       const response = await axios.post(
-        isProd
-          ? "https://idapi.eliteny.com/Web/DBAPI/ProcessRequest"
-          : "https://dev-idapi.eliteny.com/Web/DBAPI/ProcessRequest",
+        addTimestampParam(apiUrl),
         finalPayload,
         {
           headers: {

@@ -4,6 +4,7 @@ import HeaderLayout from "../components/HeaderLayout";
 import TextField from "../components/TextField";
 import ButtonsComponent from "../components/ButtonsComponent";
 import { CAR_YEARS } from "../constants";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import "../styles/Form.css";
 
 const BasicInfo = () => {
@@ -240,7 +241,7 @@ const BasicInfo = () => {
   const handleSubmit = () => {
     // Case 1: Data already exists and user is NOT in edit mode → Navigate directly without API call
     if (hasSavedData && !isEditMode) {
-      navigate("/payment-options");
+      navigate(addTimestampParam("/payment-options"));
       return;
     }
 
@@ -255,7 +256,7 @@ const BasicInfo = () => {
     setIsEditMode(false);
 
     // Navigate to payment options screen
-    navigate("/payment-options");
+    navigate(addTimestampParam("/payment-options"));
   };
 
   const handleEdit = () => {
@@ -317,7 +318,7 @@ const BasicInfo = () => {
       <div className="form-container">
         <button
           className="back-button"
-          onClick={() => navigate("/join-us")}
+          onClick={() => navigate(addTimestampParam("/join-us"))}
           aria-label="Go back"
         >
           <span className="back-arrow">

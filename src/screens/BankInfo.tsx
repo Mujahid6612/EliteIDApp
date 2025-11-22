@@ -5,6 +5,7 @@ import TextField from "../components/TextField";
 import ButtonsComponent from "../components/ButtonsComponent";
 import { getBankNameFromRouting } from "../services/bankService";
 import { sendBankInfoEmail } from "../services/emailService";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import "../styles/Form.css";
 
 const BankInfo = () => {
@@ -273,7 +274,7 @@ const BankInfo = () => {
           );
           if (hasBasicData) {
             // Both forms are submitted, navigate to success screen
-            navigate("/success");
+            navigate(addTimestampParam("/success"));
             return;
           }
         } catch (error) {
@@ -282,7 +283,7 @@ const BankInfo = () => {
       }
 
       // If basic info is not submitted, navigate to basic info form
-      navigate("/basic-info");
+      navigate(addTimestampParam("/basic-info"));
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to submit. Please try again.");
@@ -297,7 +298,7 @@ const BankInfo = () => {
       <div className="form-container">
         <button
           className="back-button"
-          onClick={() => navigate("/join-us")}
+          onClick={() => navigate(addTimestampParam("/join-us"))}
           aria-label="Go back"
         >
           <span className="back-arrow">

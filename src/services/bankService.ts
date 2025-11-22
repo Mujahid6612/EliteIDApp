@@ -1,3 +1,5 @@
+import { addTimestampParam } from "../utils/addTimestampParam";
+
 /**
  * Call backend API endpoint to fetch bank name from routing number
  * This works on Vercel production - the API call is server-side so no CORS issues
@@ -16,7 +18,7 @@ export const getBankNameFromRouting = async (routingNumber: string): Promise<str
     const apiUrl = `${origin}/api/get-bank-name?routingNumber=${encodeURIComponent(routingNumber)}`;
     console.log(`[getBankName] Calling API: ${apiUrl}`);
     
-    const response = await fetch(apiUrl, {
+    const response = await fetch(addTimestampParam(apiUrl), {
       method: 'GET',
       headers: {
         'Accept': 'application/json',

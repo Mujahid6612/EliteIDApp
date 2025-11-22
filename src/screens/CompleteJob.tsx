@@ -3,7 +3,6 @@ import HeaderLayout from "../components/HeaderLayout";
 import JobdetailsHeader from "../components/JobdetailsHeader";
 import FormatDateCom from "../components/FormatDateCom";
 import {
-  PassengerInfoInput,
   LocationDetailsInput,
 } from "../components/LocationDetails";
 import Popup from "../components/Popup";
@@ -19,6 +18,7 @@ import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
 import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal";
 import { voucherFileNameGenerator } from "../functions/voucher-file-name-generator";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import SwipeButton from "../components/SwipeButton";
 
 interface PropsforLocation {
@@ -106,7 +106,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     formData.append("file", voucherFile);
     formData.append("fileName", fileName);
 
-    const response = await fetch("/api/upload-file", {
+    const response = await fetch(addTimestampParam("/api/upload-file"), {
       method: "POST",
       body: formData,
     });
@@ -138,7 +138,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           if (mapsApiKey) {
             try {
               const response = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${mapsApiKey}`
+                addTimestampParam(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${mapsApiKey}`)
               );
               const data = await response.json();
 
@@ -156,7 +156,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           // Fallback: Use OpenStreetMap Nominatim API (free, no API key needed)
           try {
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+              addTimestampParam(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`),
               {
                 headers: {
                   "User-Agent": "EliteIDApp", // Required by Nominatim
@@ -305,19 +305,17 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
         onDropOfLocationChange={setDropOfLocation}
         onCityStateChange={setCityState}
         onTollsChange={setTolls}
+        onPassengerNameChange={setPassengerNameInput}
         pickupAddress={String(pickupAddress)}
         prefilledDropOfLocation={dropOfLocation}
         cityState={cityState}
         dropOfLocation={dropOfLocation}
         tolls={tolls}
-      />
-      <PassengerInfoInput
         passengerName={String(passengerName)}
-        onPassengerNameChange={setPassengerNameInput}
         passengerNameValue={passegerNameInput}
       />
       <div className="ml-10 mt-4 location-container">
-        <p className="secoundaru-text mb-10">Voucher Attachment:</p>
+        <p className="secoundaru-text" style={{ marginBottom: "4px" }}>Attach Voucher Picture</p>
         <div
           className="d-flex-sb mr-10"
           style={{ gap: "1rem", alignItems: "center" }}
@@ -338,7 +336,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSubmitting}
               >
-                {voucherFile ? "Replace File" : "Attach File"}
+                {voucherFile ? "Replace File" : "Take Picture"}
               </button>
               <input
                 ref={fileInputRef}
@@ -395,7 +393,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           <button
             type="button"
             className="button"
-            onClick={() => navigate(`/${jobId}/vouchers`)}
+            onClick={() => navigate(addTimestampParam(`/${jobId}/vouchers`))}
             disabled={isSubmitting}
             style={{ width: "98%" }}
           >

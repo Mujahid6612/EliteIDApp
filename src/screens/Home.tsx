@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import "../styles/Home.css";
 
 const Home = () => {
@@ -25,7 +26,7 @@ const Home = () => {
         
         <div 
           className="register-card" 
-          onClick={() => navigate("/basic-info")}
+          onClick={() => navigate(addTimestampParam("/basic-info"))}
         >
           <h2 className="register-title">Register</h2>
           <p className="register-description">

@@ -1,6 +1,7 @@
 import fetchClientIP from "../functions/fetchClientIp";
 import { fetchDeviceType, getUserAgent } from "../functions/fetchClientDevice";
 import getGPSData from "../functions/fetchGeolcationData";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import axios from "axios";
 
 let lastRequestTime: string | null = null;
@@ -210,10 +211,11 @@ export const authenticate = async function ({
     finalPayload
   );
   try {
+    const apiUrl = isProd
+      ? "https://idapi.eliteny.com/Web/DBAPI/ProcessRequest"
+      : "https://dev-idapi.eliteny.com/Web/DBAPI/ProcessRequest";
     const response = await axios.post(
-      isProd
-        ? "https://idapi.eliteny.com/Web/DBAPI/ProcessRequest"
-        : "https://dev-idapi.eliteny.com/Web/DBAPI/ProcessRequest",
+      addTimestampParam(apiUrl),
       finalPayload,
       {
         headers: {

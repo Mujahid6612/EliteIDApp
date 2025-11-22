@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import "../styles/Form.css";
 import "../styles/Home.css";
 
@@ -42,7 +43,7 @@ const Success = () => {
           
           <button
             className="back-button"
-            onClick={() => navigate("/join-us")}
+            onClick={() => navigate(addTimestampParam("/join-us"))}
             aria-label="Go back to home"
             style={{ marginTop: "30px" }}
           >
