@@ -13,15 +13,23 @@ interface LocationRequestProps {
 }
 
 const LocationRequest = ({ permissionBlockedRes, onRequestLocation }: LocationRequestProps) => {
-  const [titleToPass, setTitleToPass] = useState(
-    "Please Allow location permissions for this app on next page"
-  );
   const [deviceType, setDeviceType] = useState<string>("Unknown");
   const [instructionList, setInstructionList] = useState<string[]>([]);
   console.log("LocationRequest deviceType.", deviceType);
+  
   const refreshwindow = () => {
     window.location.reload();
   }
+
+  // Automatically trigger location request when component mounts (if not blocked)
+  useEffect(() => {
+    if (!permissionBlockedRes) {
+      // Automatically prompt for location permission when this screen appears
+      onRequestLocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
   useEffect(() => {
     // Fetch device type and update state
     const getDeviceType = async () => {
@@ -76,14 +84,14 @@ const LocationRequest = ({ permissionBlockedRes, onRequestLocation }: LocationRe
   }, []);
 
   const handleButtonClick = () => {
-    setTitleToPass("Welcome to Driver App");
-    onRequestLocation(); // Call the parent function to request location
+    // Retry location request
+    onRequestLocation();
   };
 
   return (
     <div>
       <Logo logoWidth="full-logo" />
-      <MainMessage title={titleToPass} />
+      <MainMessage title="Please Allow the location permission" />
       {!permissionBlockedRes && (
         <>
           <div style={{ textAlign: "center" }}>

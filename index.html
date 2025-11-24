@@ -8,6 +8,28 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Ensure timestamp parameter is present in URL before React loads
+      (function() {
+        // Skip for root path to allow redirects to work properly
+        if (window.location.pathname === '/') {
+          return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Check if ts parameter already exists
+        if (!urlParams.has('ts')) {
+          // Add timestamp parameter
+          const ts = Date.now();
+          const separator = window.location.search ? '&' : '?';
+          const newUrl = window.location.pathname + window.location.search + separator + 'ts=' + ts;
+          
+          // Hard reload with replace to avoid adding to history
+          window.location.replace(newUrl);
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
