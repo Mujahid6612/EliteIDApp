@@ -111,10 +111,10 @@ const LocationDetailsInput = ({
             className="secoundaru-text"
             style={{ marginTop: "8px", marginBottom: "4px" }}
           >
-            Voucher:
+            Voucher Number:
           </p>
           <TextField
-            placeHolderTextInput="Voucher"
+            placeHolderTextInput="Voucher Number"
             valueTrue={false}
             value={cityState}
             onChange={(e) => onCityStateChange(e.target.value)}
