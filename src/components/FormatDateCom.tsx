@@ -16,7 +16,7 @@ const FormatDateCom = ({datePassed }: Props) => {
     // Handle formats like "HH:MM:SS" or "HH:MM:SS AM/PM" or "HH:MM:SS.xxx"
     // Pattern: match HH:MM:SS (with optional .xxx for milliseconds) and optional AM/PM
     // Replace with HH:MM (keeping AM/PM if present)
-    return timeStr.replace(/(\d{1,2}:\d{2}):\d{2}(?:\.\d+)?(\s*(?:AM|PM|am|pm))?/gi, (match, timeWithoutSec, ampm) => {
+    return timeStr.replace(/(\d{1,2}:\d{2}):\d{2}(?:\.\d+)?(\s*(?:AM|PM|am|pm))?/gi, (_match, timeWithoutSec, ampm) => {
       return timeWithoutSec + (ampm || '');
     });
   };
