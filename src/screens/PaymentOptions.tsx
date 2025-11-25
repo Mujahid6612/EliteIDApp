@@ -183,8 +183,11 @@ const PaymentOptions = () => {
         // Only validate plate number if basic info doesn't exist
         if (!basicInfo) {
           if (!value.trim()) return "Plate number is required";
-          if (value.trim().length < 2)
+          const trimmedValue = value.trim();
+          if (trimmedValue.length < 2)
             return "Plate number must be at least 2 characters";
+          if (trimmedValue.length > 8)
+            return "Plate number cannot exceed 8 characters";
         }
         return "";
       }

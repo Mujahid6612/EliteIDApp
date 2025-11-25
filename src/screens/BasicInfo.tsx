@@ -105,9 +105,16 @@ const BasicInfo = () => {
       }
       case "plateNumber": {
         if (!value.trim()) return "Plate number is required";
-        const alphanumericRegex = /^[A-Za-z0-9]{8}$/;
-        if (!alphanumericRegex.test(value.trim())) {
-          return "Plate number must be exactly 8 alphanumeric characters";
+        const trimmedValue = value.trim();
+        if (trimmedValue.length < 2) {
+          return "Plate number must be at least 2 characters";
+        }
+        if (trimmedValue.length > 8) {
+          return "Plate number cannot exceed 8 characters";
+        }
+        const alphanumericRegex = /^[A-Za-z0-9]+$/;
+        if (!alphanumericRegex.test(trimmedValue)) {
+          return "Plate number must contain only alphanumeric characters";
         }
         return "";
       }
