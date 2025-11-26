@@ -10,6 +10,7 @@ interface TextFieldProps {
   error?: string;
   required?: boolean;
   type?: string;
+  disabled?: boolean;
 }
 
 const TextField = ({
@@ -21,14 +22,15 @@ const TextField = ({
   error,
   required = false,
   type = "text",
+  disabled = false,
 }: TextFieldProps) => {
   const [isFocused, setIsFocused] = React.useState(false);
   const fieldId = label ? label.toLowerCase().replace(/\s+/g, "-") : undefined;
   const hasValue = !!(value && value.trim());
   
   const inputClassName = error 
-    ? "primary-text-field error-field" 
-    : "primary-text-field";
+    ? `primary-text-field error-field ${disabled ? "disabled-field" : ""}` 
+    : `primary-text-field ${disabled ? "disabled-field" : ""}`;
   
   const handleFocus = () => {
     setIsFocused(true);
@@ -53,6 +55,7 @@ const TextField = ({
       onBlur={handleBlurInternal}
       id={fieldId}
       required={required}
+      disabled={disabled}
       aria-invalid={!!error}
       aria-describedby={error ? `${fieldId}-error` : undefined}
     />
@@ -60,7 +63,7 @@ const TextField = ({
 
   if (label) {
     return (
-      <div className={`text-field-container outlined-field ${hasValue || isFocused ? "has-value" : ""} ${error ? "has-error" : ""} ${isFocused ? "is-focused" : ""}`}>
+      <div className={`text-field-container outlined-field ${hasValue || isFocused ? "has-value" : ""} ${error ? "has-error" : ""} ${isFocused ? "is-focused" : ""} ${disabled ? "is-disabled" : ""}`}>
         {inputField}
         <label className="outlined-label" htmlFor={fieldId}>
           {label}

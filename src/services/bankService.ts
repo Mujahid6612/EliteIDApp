@@ -1,47 +1,86 @@
+import { addTimestampParam } from "../utils/addTimestampParam";
+
+/**
+ * Call backend API endpoint to fetch bank name from routing number
+ * This works on Vercel production - the API call is server-side so no CORS issues
+ */
 export const getBankNameFromRouting = async (routingNumber: string): Promise<string> => {
   if (!routingNumber || routingNumber.length !== 9) {
     throw new Error("Invalid routing number");
   }
 
   try {
-    // Using routingnumbers.info API (free, no API key required)
-    const response = await fetch(
-      `https://www.routingnumbers.info/api/data.json?rn=${routingNumber}`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
+    console.log(`[getBankName] Fetching bank info for routing number: ${routingNumber}`);
+    
+    // Call the backend API endpoint
+    // Use absolute origin so production always hits the same host (prevents SPA rewrites)
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const apiUrl = `${origin}/api/get-bank-name?routingNumber=${encodeURIComponent(routingNumber)}`;
+    console.log(`[getBankName] Calling API: ${apiUrl}`);
+    
+    const response = await fetch(addTimestampParam(apiUrl), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    console.log(`[getBankName] API Response Status: ${response.status}`);
 
     if (!response.ok) {
-      throw new Error("Failed to fetch bank information");
+      // Log the response text for debugging
+      let responseText = '';
+      try {
+        responseText = await response.text();
+        console.error(`[getBankName] Error response: ${responseText.substring(0, 200)}`);
+      } catch {
+        console.error(`[getBankName] Could not read error response`);
+      }
+
+      if (response.status === 400) {
+        throw new Error("Invalid routing number. Must be a valid 9-digit ABA routing number.");
+      }
+      if (response.status === 404) {
+        throw new Error("API endpoint not found. Please contact support.");
+      }
+      if (response.status === 500) {
+        throw new Error("Server error. Please try again later.");
+      }
+      throw new Error(`Failed to fetch bank information (${response.status})`);
     }
 
-    const data = await response.json();
-    
-    // The API returns bank information in different formats
-    if (data.customer_name) {
-      return data.customer_name;
+    let data;
+    try {
+      data = await response.json();
+      console.log(`[getBankName] Successfully parsed JSON response:`, data);
+    } catch (error) {
+      console.error(`[getBankName] Failed to parse JSON:`, error);
+      throw new Error("Invalid response from server - expected JSON");
     }
-    if (data.bank_name) {
-      return data.bank_name;
+
+    if (data.success && data.bankName) {
+      console.log(`[getBankName] Success! Bank name: ${data.bankName}`);
+      return data.bankName.trim();
     }
-    if (data.name) {
-      return data.name;
+
+    if (data.error) {
+      console.error(`[getBankName] API returned error:`, data.error);
+      throw new Error(data.error);
     }
-    
-    return "";
+
+    console.error(`[getBankName] Unexpected response format:`, data);
+    throw new Error("No bank name returned from server");
   } catch (error) {
-    console.error("Error fetching bank name:", error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`[getBankName] Error:`, errorMsg);
     
-    // Return empty string if API fails
-    // In production, you might want to use a different API or backend service
-    // Alternative APIs:
-    // - https://bankrouting.io/api/routing/{routingNumber} (requires API key)
-    // - Your own backend service that queries a routing number database
-    return "";
+    // Check for network/connection errors
+    if (errorMsg.includes("Failed to fetch") || errorMsg.includes("ERR_FAILED") || errorMsg.includes("TypeError")) {
+      throw new Error("Failed to fetch bank information. Please check your connection and try again.");
+    }
+    
+    // Re-throw with user-friendly message
+    throw error;
   }
 };
 

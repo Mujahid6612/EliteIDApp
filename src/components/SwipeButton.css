@@ -98,10 +98,17 @@
 }
 
 .swipe-button-arrow {
-  font-size: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--swipe-primary-blue);
   transition: transform 0.3s ease, color 0.3s ease;
-  font-weight: bold;
+}
+
+.swipe-button-arrow svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: inherit;
 }
 
 .swipe-button-idle .swipe-button-arrow {

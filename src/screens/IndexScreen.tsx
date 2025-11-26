@@ -1,10 +1,23 @@
-import { useEffect, useState } from "react";
+// Testing NewIndexScreen - rendering the optimized version
+import NewIndexScreen from "./NewIndexScreen";
+
+const IndexScreen = () => {
+  return <NewIndexScreen />;
+};
+
+export default IndexScreen;
+
+/* ============================================
+   ORIGINAL INDEXSCREEN CODE (COMMENTED OUT)
+   ============================================
+
+import { useEffect, useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import { RootState } from "../store/store";
-import { setJobData } from "../store/authSlice";
-import { setCurrentRoute } from "../store/currentViewSlice";
-import { setTokenForJob } from "../store/tokenSlice";
+import { setJobData, clearJobData } from "../store/authSlice";
+import { setCurrentRoute, clearCurrentRoute } from "../store/currentViewSlice";
+import { setTokenForJob, clearTokenForJob } from "../store/tokenSlice";
 import { authenticate } from "../services/apiServices";
 import JobOffer from "./JobOffer";
 import EnRoute from "./EnRoute";
@@ -26,6 +39,8 @@ const IndexScreen = () => {
   const [retryFailed, setRetryFailed] = useState(false);
   const dispatch = useDispatch();
   const [islogrestricting, setIsLogRestricting] = useState(false);
+  // Track if AUTH has completed (either success or failure)
+  const [authCompleted, setAuthCompleted] = useState(false);
 
   // Using job-specific selectors
   const jobData = useSelector(
@@ -34,7 +49,12 @@ const IndexScreen = () => {
   const currentRoute = useSelector(
     (state: RootState) => state.currentView.currentRoutes[jobId || ""]
   );
-  const resfromlogView = useAuthRefresh();
+  // Start LOG polling only after AUTH has succeeded (ActionCode === 0)
+  const jobActionCodeForPolling = Number(jobData?.JHeader?.ActionCode ?? 1);
+  const shouldStartLogPolling =
+    !!jobData && jobActionCodeForPolling === 0;
+
+  const resfromlogView = useAuthRefresh(shouldStartLogPolling);
   const [responseFromLog, setResponseFromLog] = useState(resfromlogView);
   useEffect(() => {
     if (resfromlogView) {
@@ -62,7 +82,7 @@ const IndexScreen = () => {
     checkLocationPermission();
   }, []);
 
-  const fetchJobData = async () => {
+  const fetchJobData = useCallback(async () => {
     if (!jobId) return;
     try {
       const token = jobId;
@@ -73,21 +93,72 @@ const IndexScreen = () => {
         viewName: "AUTH",
       });
 
-      if (res?.JHeader?.ActionCode == 0) {
+      // Always dispatch the response, whether it's success (ActionCode == 0) or error (ActionCode > 0)
+      // This ensures error responses are stored and can be displayed by the Unauthorized component
+      if (res && res.JHeader) {
         dispatch(setJobData({ jobId, data: res }));
+        // Mark AUTH as completed after successful dispatch
+        setAuthCompleted(true);
+      } else if (res) {
+        // If response doesn't have JHeader structure, wrap it
+        dispatch(setJobData({ 
+          jobId, 
+          data: {
+            JHeader: {
+              ActionCode: 1,
+              Message: res.Message || "Unknown error occurred",
+              SysVersion: "",
+            },
+            JMetaData: {
+              Headings: [],
+            },
+            JData: [],
+          },
+        }));
+        setAuthCompleted(true);
       }
-
-      //dispatch(setJobData({ jobId, data: res }));
     } catch (error) {
       console.error("Error fetching job data", error);
+      // Dispatch error response so Unauthorized component can show it
+      dispatch(setJobData({ 
+        jobId, 
+        data: {
+          JHeader: {
+            ActionCode: 1,
+            Message: error instanceof Error ? error.message : "An error occurred while fetching job data",
+            SysVersion: "",
+          },
+          JMetaData: {
+            Headings: [],
+          },
+          JData: [],
+        },
+      }));
+      setAuthCompleted(true);
     }
-  };
+  }, [jobId, dispatch]);
+
+  // Clear current jobId's data when jobId changes or on mount
+  // This ensures fresh data is always fetched and prevents stale data from interfering
+  useEffect(() => {
+    if (!jobId) return;
+
+    // Clear all data for this jobId from Redux (which will be removed from localStorage on next save)
+    dispatch(clearJobData(jobId));
+    dispatch(clearCurrentRoute(jobId));
+    dispatch(clearTokenForJob(jobId));
+    
+    // Reset authCompleted to ensure fresh AUTH call
+    setAuthCompleted(false);
+
+    console.log(`[IndexScreen] Cleared persisted data for jobId: ${jobId}`);
+  }, [jobId, dispatch]);
 
   useEffect(() => {
-    if (locationPermission === "granted" && !jobData) {
+    if (locationPermission === "granted" && !jobData && !authCompleted) {
       fetchJobData();
     }
-  }, [jobId, jobData, locationPermission, dispatch]);
+  }, [jobId, jobData, locationPermission, authCompleted, fetchJobData]);
 
   useEffect(() => {
     if (
@@ -131,19 +202,15 @@ const IndexScreen = () => {
     throw new Error("Unable to fetch job data after multiple attempts.");
   }
 
-  if (Number(jobData?.JHeader?.ActionCode) > 0) {
-    return <Unauthorized message={jobData?.JHeader?.Message} />;
-  }
+  // Normalize AUTH action code - this is the ONLY source of truth for initial screen decision
+  const jobActionCode = Number(jobData?.JHeader?.ActionCode ?? 0);
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-expect-error
-  if (Number(responseFromLog?.JHeader?.ActionCode) > 0) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-expect-error
-    return <Unauthorized message={responseFromLog?.JHeader?.Message} />;
-  }
+  console.log("[IndexScreen] jobData.JHeader.ActionCode =", jobData?.JHeader?.ActionCode);
+  console.log("[IndexScreen] normalized jobActionCode =", jobActionCode);
+  console.log("[IndexScreen] authCompleted =", authCompleted);
 
-  if (!jobData || !jobData.JHeader) {
+  // Show loader until AUTH completes (either success or failure)
+  if (!authCompleted || !jobData || !jobData.JHeader) {
     return (
       <Spinner
         functionPassed={fetchJobData}
@@ -153,6 +220,20 @@ const IndexScreen = () => {
     );
   }
 
+  // After AUTH completes, decide based ONLY on AUTH result
+  // LOG polling is for background updates only, not for initial screen decision
+  if (jobActionCode > 0) {
+    // AUTH failed - show Unauthorized
+    console.log("[IndexScreen] Rendering Unauthorized due to AUTH error", {
+      jobActionCode,
+      message: jobData?.JHeader?.Message,
+    });
+    return <Unauthorized message={jobData?.JHeader?.Message} />;
+  }
+
+  // AUTH succeeded (ActionCode === 0) - proceed to job screens
+  console.log("[IndexScreen] AUTH succeeded; proceeding to job screens.");
+
   const getComponentForStatus = (status: string) => {
     switch (status) {
       case "/":
@@ -160,10 +241,13 @@ const IndexScreen = () => {
       case "Job Offer":
         return <JobOffer islogrestricting={islogrestricting} />;
       case "Job Accepted":
+      case "On Call":
         return <EnRoute islogrestricting={islogrestricting} />;
       case "On-scene":
+      case "On Location":
         return <OnScene islogrestricting={islogrestricting} />;
       case "Load":
+      case "P.O.B":
         return <Load islogrestricting={islogrestricting} />;
       case "Unload":
         return <CompleteJob islogrestricting={islogrestricting} />;
@@ -182,6 +266,7 @@ const IndexScreen = () => {
 };
 
 export default IndexScreen;
+*/
 
 //import { persistor } from "../store/store";
 /*

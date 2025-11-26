@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import Spinner from "../components/Spinner";
 import ThemedText from "../components/ThemedText";
+import { addTimestampParam } from "../utils/addTimestampParam";
 
 interface Voucher {
   id: string;
@@ -66,7 +67,7 @@ const VoucherList = () => {
     // Store selected voucher in sessionStorage or pass via state
     sessionStorage.setItem("selectedVoucher", JSON.stringify(voucher));
     // Navigate back to CompleteJob screen
-    navigate(`/${jobId}`);
+    navigate(addTimestampParam(`/${jobId}`));
   };
 
 
@@ -148,7 +149,7 @@ const VoucherList = () => {
         <div className="d-flex-cen mt-10">
           <button
             className="button primary"
-            onClick={() => navigate(`/${jobId}`)}
+            onClick={() => navigate(addTimestampParam(`/${jobId}`))}
             style={{ marginTop: "20px" }}
           >
             Back to Job

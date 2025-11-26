@@ -17,7 +17,7 @@ import { RootState } from "../store/store";
 import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
-import { getJobDetails } from "../utils/JobDataVal";
+import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal";
 import SwipeButton from "../components/SwipeButton";
 
 interface Props {
@@ -136,8 +136,6 @@ const JobOffer = ({ islogrestricting }: Props) => {
     passengerPhone,
     passengerNameHeading,
     passengerPhoneHeading,
-    showButtonAccept,
-    showButtonReject,
   } = getJobDetails(jobData);
   console.log("permissionBlockedRes", permissionBlockedRes);
   if (permissionBlockedRes) {
@@ -165,12 +163,11 @@ const JobOffer = ({ islogrestricting }: Props) => {
       </div>
     );
   }
-  console.log("showButtonAccept", showButtonAccept);
   return (
     <div>
       {isJobCame ? (
         <>
-          <HeaderLayout screenName={String(jobOffer)} />
+          <HeaderLayout screenName={getDisplayTitle(String(jobOffer))} />
           <JobdetailsHeader
             JobidPassed={String(jobIdFromRes)}
             jobNumber={String(jobNumber)}
@@ -206,10 +203,11 @@ const JobOffer = ({ islogrestricting }: Props) => {
             functionpassed={handleAllowLocation}
           /> */}
           <SwipeButton
-            text={showButtonAccept}
+            text="Accept"
             onSwipeComplete={handleAllowLocation}
             disabled={isAccepting}
             loading={isAccepting}
+            showSwipeArrow={true}
           />
           {/* <Popup
             triggerOnLoad={false}
@@ -223,17 +221,11 @@ const JobOffer = ({ islogrestricting }: Props) => {
             functionpassed={handleRejectJob}
           /> */}
           <SwipeButton
-            text={showButtonReject}
+            text="Decline"
             onSwipeComplete={handleRejectJob}
             type="danger"
             disabled={isRejecting}
             loading={isRejecting}
-          />
-          <Popup
-            triggerOnLoad={true}
-            popTitle="Welcome to Driver App"
-            popUpText="Thanks. Please keep this app open at all times to get jobs notification. Dispatcher might sign you off if job notifications cannot reach you."
-            PopUpButtonText="Ok"
           />
         </>
       ) : (

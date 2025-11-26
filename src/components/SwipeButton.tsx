@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 import "./SwipeButton.css";
+import SwipeArrow from "./SwipeArrow";
 
 interface SwipeButtonProps {
   onSwipeComplete: () => void;
@@ -9,6 +10,7 @@ interface SwipeButtonProps {
   className?: string;
   type?: "default" | "danger";
   loading?: boolean;
+  showSwipeArrow?: boolean;
 }
 
 const SwipeButton = ({
@@ -18,11 +20,11 @@ const SwipeButton = ({
   className = "",
   type = "default",
   loading = false,
+  showSwipeArrow = false,
 }: SwipeButtonProps) => {
   // Ensure text includes "Swipe" if not already present
-  const displayText = text.toLowerCase().includes("swipe") 
-    ? text 
-    : `SWIPE TO ${text}`;
+  const displayText = text; // Don't auto-prepend SWIPE TO as per requirement to use label above
+  
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
@@ -90,10 +92,15 @@ const SwipeButton = ({
       setSwipeProgress(0);
       setIsSwiping(false);
     }
-  }, [hasCompleted, loading]);
+  }, [hasCompleted, loading, isSwiping]);
 
   return (
-    <div className={`swipe-button-container ${className}`}>
+    <div className={`swipe-button-container ${className}`} style={{flexDirection: "column", gap: "5px"}}>
+      {showSwipeArrow && (
+        <div style={{ textAlign: "center", width: "100%", color: "#003182", fontWeight: "bold", marginBottom: "5px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+          Swipe <SwipeArrow style={{ width: "20px", height: "20px" }} />
+        </div>
+      )}
       <div
         {...handlers}
         className={`swipe-button swipe-button-${type} ${
@@ -119,7 +126,9 @@ const SwipeButton = ({
           ) : (
             <>
               <span className="swipe-button-text">{displayText}</span>
-              <span className="swipe-button-arrow">→</span>
+              <span className="swipe-button-arrow">
+                <SwipeArrow />
+              </span>
             </>
           )}
         </div>

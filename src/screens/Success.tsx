@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import "../styles/Form.css";
+import "../styles/Home.css";
 
 const Success = () => {
   const navigate = useNavigate();
@@ -28,13 +30,41 @@ const Success = () => {
           <p className="success-message">
             Someone from driver relations will contact you soon.
           </p>
+          
+          <div className="last-step-section register-card">
+            <h3 className="last-step-title">Last Step:</h3>
+            <p className="last-step-instruction">
+              Please email copies of your driver's license and car registration to{" "}
+              <a href="mailto:EIDApp@EliteNY.com" className="email-link">
+                EIDApp@EliteNY.com
+              </a>
+            </p>
+          </div>
+          
           <button
             className="back-button"
-            onClick={() => navigate("/")}
+            onClick={() => navigate(addTimestampParam("/join-us"))}
             aria-label="Go back to home"
             style={{ marginTop: "30px" }}
           >
-            ← Back to Home
+            <span className="back-arrow">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="back-text">Back to Home</span>
           </button>
         </div>
       </div>

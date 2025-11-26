@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import TextField from "../components/TextField";
 import ButtonsComponent from "../components/ButtonsComponent";
-import { sendBasicInfoEmail } from "../services/emailService";
+import { CAR_YEARS } from "../constants";
+import { addTimestampParam } from "../utils/addTimestampParam";
 import "../styles/Form.css";
 
 const BasicInfo = () => {
@@ -15,14 +16,15 @@ const BasicInfo = () => {
     email: "",
     plateNumber: "",
     make: "",
+    model: "",
     modelYear: "",
-    color: "",
+    color: "Black",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasSavedData, setHasSavedData] = useState(false);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
 
   useEffect(() => {
     // Load saved basic info from localStorage if available
@@ -35,7 +37,28 @@ const BasicInfo = () => {
           (value) => value && String(value).trim() !== ""
         );
         if (hasData) {
-          setFormData(parsed);
+          // Handle migration from old format (makeModel -> make and model)
+          // If makeModel exists, try to split it, otherwise use as make
+          let make = "";
+          let model = "";
+          if (parsed.makeModel) {
+            const parts = parsed.makeModel.split(/\s+/);
+            make = parts[0] || "";
+            model = parts.slice(1).join(" ") || "";
+          } else if (parsed.make) {
+            make = parsed.make;
+          }
+          if (parsed.model) {
+            model = parsed.model;
+          }
+          
+          const migratedData = {
+            ...parsed,
+            make: make,
+            model: model,
+            color: parsed.color || "Black",
+          };
+          setFormData(migratedData);
           setHasSavedData(true);
           setIsEditMode(false);
         } else {
@@ -82,25 +105,37 @@ const BasicInfo = () => {
       }
       case "plateNumber": {
         if (!value.trim()) return "Plate number is required";
+        const trimmedValue = value.trim();
+        if (trimmedValue.length < 2) {
+          return "Plate number must be at least 2 characters";
+        }
+        if (trimmedValue.length > 8) {
+          return "Plate number cannot exceed 8 characters";
+        }
+        const alphanumericRegex = /^[A-Za-z0-9]+$/;
+        if (!alphanumericRegex.test(trimmedValue)) {
+          return "Plate number must contain only alphanumeric characters";
+        }
         return "";
       }
       case "make": {
         if (!value.trim()) return "Make is required";
         return "";
       }
+      case "model": {
+        if (!value.trim()) return "Model is required";
+        return "";
+      }
       case "modelYear": {
-        if (!value.trim()) return "Year is required";
+        if (!value.trim()) return "Car Year is required";
         const year = parseInt(value);
-        const currentYear = new Date().getFullYear();
-        if (isNaN(year) || year < 1900 || year > currentYear + 1) {
-          return `Please enter a valid year between 1900 and ${
-            currentYear + 1
-          }`;
+        if (isNaN(year) || year < 2020 || year > 2025) {
+          return "Please select a year between 2020 and 2025";
         }
         return "";
       }
       case "color": {
-        if (!value.trim()) return "Color is required";
+        // Color is optional, no validation needed
         return "";
       }
       default:
@@ -109,8 +144,14 @@ const BasicInfo = () => {
   };
 
   const handleInputChange =
-    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
+    (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      let value = e.target.value;
+      
+      // Auto-uppercase plate number and limit to 8 alphanumeric characters
+      if (field === "plateNumber") {
+        value = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+      }
+      
       setFormData((prev) => ({
         ...prev,
         [field]: value,
@@ -138,6 +179,50 @@ const BasicInfo = () => {
     }));
   };
 
+  const handleSelectBlur = (field: string) => () => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const error = validateField(
+      field,
+      formData[field as keyof typeof formData]
+    );
+    setErrors((prev) => ({
+      ...prev,
+      [field]: error,
+    }));
+  };
+
+  const handleYearSelect = (year: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      modelYear: year,
+    }));
+    setIsYearDropdownOpen(false);
+    
+    // Clear error when user selects
+    if (errors.modelYear) {
+      const error = validateField("modelYear", year);
+      setErrors((prev) => ({
+        ...prev,
+        modelYear: error,
+      }));
+    }
+    
+    // Mark as touched
+    setTouched((prev) => ({ ...prev, modelYear: true }));
+  };
+
+  const handleYearInputClick = () => {
+    setIsYearDropdownOpen(!isYearDropdownOpen);
+  };
+
+  const handleYearInputBlur = () => {
+    // Delay closing to allow click on dropdown item
+    setTimeout(() => {
+      setIsYearDropdownOpen(false);
+      handleSelectBlur("modelYear")();
+    }, 150);
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     let isValid = true;
@@ -160,46 +245,25 @@ const BasicInfo = () => {
     return isValid;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
+    // Case 1: Data already exists and user is NOT in edit mode → Navigate directly without API call
+    if (hasSavedData && !isEditMode) {
+      navigate(addTimestampParam("/payment-options"));
+      return;
+    }
+
+    // Case 2 & 3: User is in edit mode OR first time submission → Validate and save to localStorage
     if (!validateForm()) {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await sendBasicInfoEmail(formData);
-      // Store form data in localStorage for use in bank info page
-      localStorage.setItem("basicInfo", JSON.stringify(formData));
-      setHasSavedData(true);
-      setIsEditMode(false);
-      
-      // Check if bank info is already submitted
-      const savedBankInfo = localStorage.getItem("bankInfo");
-      if (savedBankInfo) {
-        try {
-          const parsed = JSON.parse(savedBankInfo);
-          // Check if bank info has meaningful data
-          const hasBankData = Object.values(parsed).some(
-            (value) => value && String(value).trim() !== ""
-          );
-          if (hasBankData) {
-            // Both forms are submitted, navigate to success screen
-            navigate("/success");
-            return;
-          }
-        } catch (error) {
-          console.error("Error parsing saved bank info:", error);
-        }
-      }
-      
-      // If bank info is not submitted, navigate to bank info form
-      navigate("/bank-info");
-    } catch (error) {
-      console.error("Error sending email:", error);
-      alert("Failed to submit. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Store form data in localStorage (API will be called on payment submission)
+    localStorage.setItem("basicInfo", JSON.stringify(formData));
+    setHasSavedData(true);
+    setIsEditMode(false);
+
+    // Navigate to payment options screen
+    navigate(addTimestampParam("/payment-options"));
   };
 
   const handleEdit = () => {
@@ -214,6 +278,7 @@ const BasicInfo = () => {
       { label: "Email", value: formData.email },
       { label: "Plate Number", value: formData.plateNumber },
       { label: "Make", value: formData.make },
+      { label: "Model", value: formData.model },
       { label: "Year", value: formData.modelYear },
       { label: "Color", value: formData.color },
     ];
@@ -249,132 +314,195 @@ const BasicInfo = () => {
             </div>
           ))}
         </div>
-        <div className="data-table-actions">
-          <ButtonsComponent
-            buttonText="Continue to Bank Info"
-            buttonVariant="primary"
-            functionpassed={() => navigate("/bank-info")}
-            buttonWidth="100%"
-          />
-        </div>
       </div>
     );
   };
 
+
   return (
     <>
-      <HeaderLayout screenName="Basic Information" />
+      <HeaderLayout screenName="Registration" />
       <div className="form-container">
         <button
           className="back-button"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(addTimestampParam("/join-us"))}
           aria-label="Go back"
         >
-          ← Back
+          <span className="back-arrow">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className="back-text">Back</span>
         </button>
+        
+        <h1 className="registration-heading">
+          To join our community please provide your personal and vehicle details
+        </h1>
+
         {hasSavedData && !isEditMode ? (
           renderDataTable()
         ) : (
           <>
             <h2 className="form-section-title">Personal Info</h2>
-        <TextField
-          label="First Name"
-          placeHolderTextInput="John"
-          onChange={handleInputChange("firstName")}
-          onBlur={handleBlur("firstName")}
-          valueTrue={!!formData.firstName}
-          value={formData.firstName}
-          required
-          error={touched.firstName ? errors.firstName : ""}
-        />
-        <TextField
-          label="Last Name"
-          placeHolderTextInput="Smith"
-          onChange={handleInputChange("lastName")}
-          onBlur={handleBlur("lastName")}
-          valueTrue={!!formData.lastName}
-          value={formData.lastName}
-          required
-          error={touched.lastName ? errors.lastName : ""}
-        />
-        <TextField
-          label="Cell Phone Number"
-          placeHolderTextInput="(212) 555-1234"
-          onChange={handleInputChange("cellPhone")}
-          onBlur={handleBlur("cellPhone")}
-          valueTrue={!!formData.cellPhone}
-          value={formData.cellPhone}
-          required
-          error={touched.cellPhone ? errors.cellPhone : ""}
-        />
-        <TextField
-          label="Email Address"
-          placeHolderTextInput="john.smith@email.com"
-          onChange={handleInputChange("email")}
-          onBlur={handleBlur("email")}
-          valueTrue={!!formData.email}
-          value={formData.email}
-          type="email"
-          required
-          error={touched.email ? errors.email : ""}
-        />
+            <TextField
+              label="First Name"
+              placeHolderTextInput="John"
+              onChange={handleInputChange("firstName")}
+              onBlur={handleBlur("firstName")}
+              valueTrue={!!formData.firstName}
+              value={formData.firstName}
+              required
+              error={touched.firstName ? errors.firstName : ""}
+            />
+            <TextField
+              label="Last Name"
+              placeHolderTextInput="Smith"
+              onChange={handleInputChange("lastName")}
+              onBlur={handleBlur("lastName")}
+              valueTrue={!!formData.lastName}
+              value={formData.lastName}
+              required
+              error={touched.lastName ? errors.lastName : ""}
+            />
+            <TextField
+              label="Cell Phone Number"
+              placeHolderTextInput="(212) 555-1234"
+              onChange={handleInputChange("cellPhone")}
+              onBlur={handleBlur("cellPhone")}
+              valueTrue={!!formData.cellPhone}
+              value={formData.cellPhone}
+              required
+              error={touched.cellPhone ? errors.cellPhone : ""}
+            />
+            <TextField
+              label="Email Address"
+              placeHolderTextInput="john.smith@email.com"
+              onChange={handleInputChange("email")}
+              onBlur={handleBlur("email")}
+              valueTrue={!!formData.email}
+              value={formData.email}
+              type="email"
+              required
+              error={touched.email ? errors.email : ""}
+            />
 
-        <h2 className="form-section-title">Vehicle Info</h2>
-        <TextField
-          label="Plate Number"
-          placeHolderTextInput="ABC-1234"
-          onChange={handleInputChange("plateNumber")}
-          onBlur={handleBlur("plateNumber")}
-          valueTrue={!!formData.plateNumber}
-          value={formData.plateNumber}
-          required
-          error={touched.plateNumber ? errors.plateNumber : ""}
-        />
-        <TextField
-          label="Make"
-          placeHolderTextInput="Toyota"
-          onChange={handleInputChange("make")}
-          onBlur={handleBlur("make")}
-          valueTrue={!!formData.make}
-          value={formData.make}
-          required
-          error={touched.make ? errors.make : ""}
-        />
-        <div className="row-fields">
-          <div className="field-model-year">
+            <h2 className="form-section-title">Vehicle Info</h2>
             <TextField
-              label="Year"
-              placeHolderTextInput="2022"
-              onChange={handleInputChange("modelYear")}
-              onBlur={handleBlur("modelYear")}
-              valueTrue={!!formData.modelYear}
-              value={formData.modelYear}
+              label="Plate Number"
+              placeHolderTextInput="ABC12345"
+              onChange={handleInputChange("plateNumber")}
+              onBlur={handleBlur("plateNumber")}
+              valueTrue={!!formData.plateNumber}
+              value={formData.plateNumber}
               required
-              error={touched.modelYear ? errors.modelYear : ""}
+              error={touched.plateNumber ? errors.plateNumber : ""}
             />
-          </div>
-          <div className="field-color">
-            <TextField
-              label="Color"
-              placeHolderTextInput="Blue"
-              onChange={handleInputChange("color")}
-              onBlur={handleBlur("color")}
-              valueTrue={!!formData.color}
-              value={formData.color}
-              required
-              error={touched.color ? errors.color : ""}
-            />
-          </div>
-        </div>
+            
+            <div className="row-fields">
+              <div className="field-make">
+                <TextField
+                  label="Make"
+                  placeHolderTextInput="Toyota"
+                  onChange={handleInputChange("make")}
+                  onBlur={handleBlur("make")}
+                  valueTrue={!!formData.make}
+                  value={formData.make}
+                  required
+                  error={touched.make ? errors.make : ""}
+                />
+              </div>
+              <div className="field-model">
+                <TextField
+                  label="Model"
+                  placeHolderTextInput="Camry"
+                  onChange={handleInputChange("model")}
+                  onBlur={handleBlur("model")}
+                  valueTrue={!!formData.model}
+                  value={formData.model}
+                  required
+                  error={touched.model ? errors.model : ""}
+                />
+              </div>
+            </div>
+            
+            <div className="row-fields">
+              <div className="field-model-year">
+                <div className={`text-field-container outlined-field ${formData.modelYear ? "has-value" : ""} ${touched.modelYear && errors.modelYear ? "has-error" : ""} ${isYearDropdownOpen ? "is-focused" : ""}`}>
+                  <div className="dropdown-input-wrapper">
+                    <input
+                      readOnly
+                      className={`primary-text-field dropdown-input ${touched.modelYear && errors.modelYear ? "error-field" : ""}`}
+                      value={formData.modelYear || ""}
+                      placeholder=""
+                      onClick={handleYearInputClick}
+                      onBlur={handleYearInputBlur}
+                      onFocus={handleYearInputClick}
+                      id="car-year"
+                      required
+                    />
+                    <span className="dropdown-arrow">▼</span>
+                  </div>
+                  <label className="outlined-label" htmlFor="car-year">
+                    Car Year
+                    <span className="required-asterisk"> *</span>
+                  </label>
+                  {isYearDropdownOpen && (
+                    <div className="dropdown-menu">
+                      {CAR_YEARS.map((year) => (
+                        <div
+                          key={year}
+                          className={`dropdown-item ${formData.modelYear === year.toString() ? "selected" : ""}`}
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevent input blur before click
+                            handleYearSelect(year.toString());
+                          }}
+                        >
+                          {year}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {touched.modelYear && errors.modelYear && (
+                    <span className="error-message" role="alert">
+                      {errors.modelYear}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="field-color">
+                <TextField
+                  label="Car Color"
+                  placeHolderTextInput="Black"
+                  onChange={handleInputChange("color")}
+                  onBlur={handleBlur("color")}
+                  valueTrue={!!formData.color}
+                  value={formData.color}
+                  error={touched.color ? errors.color : ""}
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         <ButtonsComponent
-          buttonText={isSubmitting ? "Submitting..." : "Submit"}
+          buttonText="Next"
           buttonVariant="primary"
           functionpassed={handleSubmit}
           buttonWidth="100%"
         />
-          </>
-        )}
       </div>
     </>
   );
