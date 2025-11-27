@@ -1,3 +1,6 @@
+// App Version
+export const APP_VERSION = "1.0.0";
+
 // Payment Options
 export const PAYMENT_OPTIONS = [
   {
