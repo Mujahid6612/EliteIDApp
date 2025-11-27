@@ -7,7 +7,7 @@ interface ThemedTextProps {
 
 const ThemedText = ({themeText, classPassed, style}:ThemedTextProps ) => {
   return (
-    <p className={classPassed} style={style}>{themeText}</p>
+    <p className={classPassed} style={{ whiteSpace: 'pre-line', ...style }}>{themeText}</p>
   )
 }
 
