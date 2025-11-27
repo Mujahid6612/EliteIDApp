@@ -147,7 +147,7 @@ const NewIndexScreen = () => {
         const errorResponse: JobApiResponse = {
           JHeader: {
             ActionCode: 1,
-            Message: error instanceof Error ? error.message : "An error occurred while fetching job data",
+            Message:  (error as Error)?.message || "An error occurred while fetching job data",
             SysVersion: "",
           },
           JMetaData: { Headings: [] },
