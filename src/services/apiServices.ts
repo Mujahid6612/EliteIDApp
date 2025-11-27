@@ -7,7 +7,7 @@ import axios from "axios";
 let lastRequestTime: string | null = null;
 const isProd = import.meta.env.VITE_ENV === "prod";
 
-const getErrorMessage = (error: string) => {
+export const getErrorMessage = (error: string) => {
 
   return `"Error:
 Sorry. We encountered an error. Kindly report the following error message to EidApp@EliteNY.com.  We apologize for the inconvenience."
