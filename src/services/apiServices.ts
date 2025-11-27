@@ -6,8 +6,16 @@ import axios from "axios";
 
 let lastRequestTime: string | null = null;
 const isProd = import.meta.env.VITE_ENV === "prod";
-const jobAcknowledgedMessage = "Sorry. You can not view this job: Job acknowledged. You may close this browser window now.";
- 
+
+const getErrorMessage = (error: string) => {
+
+  return `"Error:
+Sorry. We encountered an error. Kindly report the following error message to EidApp@EliteNY.com.  We apologize for the inconvenience."
+
+System response:
+${error}`;
+}
+
 /**
  * Sanitizes error messages to replace technical/server errors with user-friendly messages
  */
@@ -16,36 +24,30 @@ const sanitizeErrorMessage = (errorMessage: string): string => {
   const technicalErrorPatterns = [
     {
       pattern: /Value cannot be null/i,
-      replacement: jobAcknowledgedMessage,
     },
     {
       pattern: /Parameter name:/i,
-      replacement: jobAcknowledgedMessage,
     },
     {
       pattern: /An error has occurred/i,
-      replacement: jobAcknowledgedMessage,
     },
     {
       pattern: /Invalid response from server/i,
-      replacement: jobAcknowledgedMessage,
     },
     {
       pattern: /No data received from server/i,
-      replacement: jobAcknowledgedMessage,
     },
     {
       // Handles server-side file locking issues like:
       // "The process cannot access the file ... because it is being used by another process"
       pattern: /process cannot access the file/i,
-      replacement: jobAcknowledgedMessage,
     },
   ];
 
   // Check if the error message matches any technical error pattern
-  for (const { pattern, replacement } of technicalErrorPatterns) {
+  for (const { pattern } of technicalErrorPatterns) {
     if (pattern.test(errorMessage)) {
-      return replacement;
+      return getErrorMessage(errorMessage);
     }
   }
 
@@ -57,7 +59,7 @@ const sanitizeErrorMessage = (errorMessage: string): string => {
     errorMessage.includes("Failed") ||
     errorMessage.toLowerCase().includes("exception")
   ) {
-    return jobAcknowledgedMessage;
+    return getErrorMessage(errorMessage);
   }
 
   // Return the original message if it seems user-friendly already
