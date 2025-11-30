@@ -9,7 +9,7 @@ import { useParams } from "react-router-dom";
 
 const mapContainerStyle = {
   width: "100%",
-  height: "500px",
+  height: "420px",
 };
 
 const mapOptions = {
@@ -181,7 +181,7 @@ const Unload = () => {
         style={{ flexDirection: "column", gap: "10px", padding: "10px 10px 5px 10px" }}
       >
         <ThemedText
-          style={{ fontSize: "26px", fontWeight: "bold", lineHeight: "1.5" }}
+          style={{ fontSize: "20px", fontWeight: "bold", lineHeight: "1.5" }}
           themeText="The dispatcher knows your location and will send you the next job accordingly. Please keep this page open to receive your job."
           classPassed="centertext"
         />
