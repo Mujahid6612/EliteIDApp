@@ -290,3 +290,283 @@ font-size: 1.8rem;
     background-color: #418cfe;
   }
 }
+
+/* Table Container with Fixed Height and Scroll */
+.table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  background-color: #fff;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+  max-height: calc(100vh - 280px);
+  display: flex;
+  flex-direction: column;
+  /* Firefox scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: #bfbfbf #f5f5f5;
+}
+
+/* Custom Scrollbar Styling for Webkit browsers (Chrome, Safari, Edge) */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 4px;
+  border: 2px solid #f5f5f5;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Ant Design Style Table */
+.antd-style-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  font-size: 14px;
+  line-height: 1.5715;
+}
+
+.antd-style-table thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  color: rgba(0, 0, 0, 0.88);
+  font-weight: 600;
+  text-align: left;
+  background: #e6e6e6;
+  border-bottom: 2px solid #d9d9d9;
+  border-right: 1px solid #d9d9d9;
+  padding: 10px 12px;
+  transition: background 0.2s;
+}
+
+.antd-style-table thead > tr > th:last-child {
+  border-right: none;
+}
+
+.antd-style-table tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  padding: 10px 12px;
+  color: rgba(0, 0, 0, 0.88);
+  transition: background 0.2s;
+}
+
+.antd-style-table tbody > tr > td:last-child {
+  border-right: none;
+}
+
+.antd-style-table tbody > tr:hover > td {
+  background: #fafafa;
+}
+
+.antd-style-table tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+/* Voucher Image */
+.voucher-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+  display: block;
+}
+
+/* Download Button */
+.download-btn {
+  background: transparent;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.88);
+  transition: all 0.2s;
+  line-height: 1.5715;
+}
+
+.download-btn:hover {
+  color: #418cfe;
+  border-color: #418cfe;
+  background: #f0f7ff;
+}
+
+.download-btn:active {
+  color: #003182;
+  border-color: #003182;
+}
+
+.download-btn svg {
+  display: block;
+}
+
+/* Ant Design Style Pagination */
+.antd-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding: 16px 0;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pagination-info {
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-size-select {
+  padding: 4px 11px;
+  font-size: 14px;
+  line-height: 1.5715;
+  color: rgba(0, 0, 0, 0.88);
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.page-size-select:hover {
+  border-color: #418cfe;
+}
+
+.page-size-select:focus {
+  border-color: #418cfe;
+  box-shadow: 0 0 0 2px rgba(65, 140, 254, 0.2);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 14px;
+  line-height: 1.5715;
+  color: rgba(0, 0, 0, 0.88);
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  outline: none;
+  user-select: none;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  color: #418cfe;
+  border-color: #418cfe;
+}
+
+.pagination-btn:active:not(:disabled) {
+  color: #003182;
+  border-color: #003182;
+}
+
+.pagination-btn.active {
+  color: #fff;
+  background-color: #418cfe;
+  border-color: #418cfe;
+  font-weight: 500;
+}
+
+.pagination-btn.active:hover {
+  background-color: #2a7ae8;
+  border-color: #2a7ae8;
+}
+
+.pagination-btn:disabled {
+  color: rgba(0, 0, 0, 0.25);
+  background-color: #f5f5f5;
+  border-color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.pagination-btn.ellipsis {
+  border: none;
+  background: transparent;
+  cursor: default;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.pagination-btn.ellipsis:hover {
+  background: transparent;
+  border: none;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.pagination-btn svg {
+  display: block;
+}
+
+/* Responsive table for mobile */
+@media (max-width: 768px) {
+  .table-container {
+    max-height: calc(100vh - 320px);
+  }
+
+  .antd-style-table {
+    font-size: 12px;
+  }
+  
+  .antd-style-table thead > tr > th,
+  .antd-style-table tbody > tr > td {
+    padding: 8px 10px;
+  }
+
+  .voucher-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .antd-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pagination-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pagination-buttons {
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+    padding: 0 6px;
+  }
+}
