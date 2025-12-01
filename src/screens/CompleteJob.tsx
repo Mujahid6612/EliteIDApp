@@ -16,11 +16,10 @@ import { RootState } from "../store/store";
 import { setCurrentRoute } from "../store/currentViewSlice";
 import { useLastRequestTime } from "../hooks/useLastRequestTime";
 import Spinner from "../components/Spinner";
-import { getJobDetails, getDisplayTitle, getValueFromData } from "../utils/JobDataVal";
+import { getJobDetails, getDisplayTitle } from "../utils/JobDataVal";
 import { voucherFileNameGenerator } from "../functions/voucher-file-name-generator";
 import { addTimestampParam } from "../utils/addTimestampParam";
 import SwipeButton from "../components/SwipeButton";
-import { JobApiResponse } from "../types";
 
 interface PropsforLocation {
   dropOfLocation: string;
@@ -96,44 +95,25 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     }
   };
 
-  // Helper function to extract driver ID from job data
-  const getDriverId = (jobData: JobApiResponse | null | undefined): string => {
-    if (!jobData || !jobData.JMetaData || !jobData.JMetaData.Headings) {
-      return "";
-    }
-
-    // Try to find driver ID in various possible field names
-    const possibleDriverFields = [
-      "p_CT_DRIVER_ID",
-      "p_DRIVER_ID",
-      "p_CT_DRIVER_NUM",
-      "p_DRIVER_NUM",
-      "p_CT_EMPLOYEE_ID",
-      "p_EMPLOYEE_ID",
-      "p_CT_USER_ID",
-      "p_USER_ID",
-    ];
-
-    for (const fieldName of possibleDriverFields) {
-      const driverId = getValueFromData(jobData, fieldName);
-      if (driverId && driverId !== `No data for ${fieldName}`) {
-        return String(driverId);
-      }
-    }
-
-    // If no driver ID field found, return empty string (will use jobId token as fallback)
-    return "";
-  };
-
-  const uploadVoucherFile = async (jobIdToken: string, actualJobId: string) => {
+  const uploadVoucherFile = async (_jobIdToken: string, actualJobId: string) => {
     if (!voucherFile) {
       throw new Error("Voucher file is required.");
     }
 
-    // Try to get driver ID from job data, fallback to jobId token if not available
-    const driverId = getDriverId(jobData) || jobIdToken;
-
-    const fileName = voucherFileNameGenerator(driverId, actualJobId);
+    // Generate file name with format: {ReservationNumber}-{startDate}-{endDate}-voucher.{extension}
+    // Use both start date (14 days back) and end date (today) to match the API date range logic
+    // This matches the same date range used in list-vouchers API (today to 14 days back)
+    const today = new Date();
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const startDate = twoWeeksAgo.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const endDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    const baseFileName = voucherFileNameGenerator(actualJobId, startDate, endDate);
+    
+    // Get file extension from the original file
+    const fileExtension = voucherFile.name.split('.').pop() || 'png';
+    const fileName = `${baseFileName}.${fileExtension}`;
 
     const formData = new FormData();
     formData.append("file", voucherFile);

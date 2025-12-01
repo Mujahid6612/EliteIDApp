@@ -43,8 +43,9 @@ export default async function handler(req, res) {
       prefix: "uploads/",
     });
 
-    // Parse voucher filenames to extract driverId and rideId
-    // Format: {driverId}-{rideId}-voucher
+    // Parse voucher filenames to extract reservation number and date range
+    // Format: {ReservationNumber}-{startDate}-{endDate}-voucher
+    // Example: 05C96053DBE54DC7947760350493D674-2024-01-01-2024-01-15-voucher
     const parseVoucherFileName = (fileName) => {
       // Remove "uploads/" prefix if present and get just the filename
       const name = fileName.split("/").pop() || fileName;
@@ -55,12 +56,53 @@ export default async function handler(req, res) {
       // Split by "-" to get parts
       const parts = nameWithoutExt.split("-");
       
-      // Format should be: driverId-rideId-voucher
-      if (parts.length >= 3 && parts[parts.length - 1] === "voucher") {
-        const rideId = parts.slice(1, -1).join("-"); // Join middle parts in case rideId contains dashes
+      // Format should be: ReservationNumber-YYYY-MM-DD-YYYY-MM-DD-voucher
+      // Minimum 7 parts: [reservationNumber, YYYY, MM, DD, YYYY, MM, DD, voucher]
+      if (parts.length >= 7 && parts[parts.length - 1] === "voucher") {
+        // Last 7 parts before "voucher": [reservationNumber, YYYY, MM, DD, YYYY, MM, DD]
+        // Extract end date (last 3 parts before "voucher"): YYYY-MM-DD
+        const endDateParts = parts.slice(-4, -1); // [YYYY, MM, DD]
+        const endDate = endDateParts.join("-"); // YYYY-MM-DD
+        
+        // Extract start date (3 parts before end date): YYYY-MM-DD
+        const startDateParts = parts.slice(-7, -4); // [YYYY, MM, DD]
+        const startDate = startDateParts.join("-"); // YYYY-MM-DD
+        
+        // Everything before the start date is the reservation number
+        const reservationNumber = parts.slice(0, -7).join("-");
+        
         return {
-          driverId: parts[0],
+          reservationNumber: reservationNumber,
+          rideId: reservationNumber, // Use reservation number as rideId for compatibility
+          startDate: startDate,
+          endDate: endDate,
+        };
+      }
+      
+      // Fallback: Try to parse old format with single date for backward compatibility
+      // Old format: {ReservationNumber}-{YYYY-MM-DD}-voucher
+      if (parts.length >= 4 && parts[parts.length - 1] === "voucher") {
+        const dateParts = parts.slice(-4, -1); // Get last 3 parts before "voucher"
+        const date = dateParts.join("-"); // YYYY-MM-DD
+        const reservationNumber = parts.slice(0, -4).join("-");
+        
+        return {
+          reservationNumber: reservationNumber,
+          rideId: reservationNumber,
+          startDate: date,
+          endDate: date,
+        };
+      }
+      
+      // Fallback: Try to parse very old format for backward compatibility
+      // Very old format: {driverId}-{rideId}-voucher
+      if (parts.length >= 3 && parts[parts.length - 1] === "voucher") {
+        const rideId = parts.slice(1, -1).join("-");
+        return {
+          reservationNumber: parts[0],
           rideId: rideId,
+          startDate: null,
+          endDate: null,
         };
       }
       
@@ -82,8 +124,10 @@ export default async function handler(req, res) {
           id: blob.pathname,
           url: blob.url,
           fileName: fileName,
-          driverId: parsed?.driverId || "unknown",
-          rideId: parsed?.rideId || "unknown",
+          driverId: "unknown", // Driver ID no longer in filename
+          rideId: parsed?.rideId || parsed?.reservationNumber || "unknown",
+          reservationNumber: parsed?.reservationNumber || "unknown",
+          date: parsed?.date || null,
           uploadedAt: blob.uploadedAt,
           size: blob.size,
         };
