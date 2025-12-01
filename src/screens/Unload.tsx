@@ -9,7 +9,7 @@ import { useParams } from "react-router-dom";
 
 const mapContainerStyle = {
   width: "100%",
-  height: "420px",
+  height: "360px",
 };
 
 const mapOptions = {
@@ -23,8 +23,11 @@ const Unload = () => {
   const jobData = useSelector(
     (state: RootState) => state.auth.jobData[jobId || ""]
   );
-  
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -36,7 +39,9 @@ const Unload = () => {
   useEffect(() => {
     if (!mapsApiKey) {
       console.warn("VITE_API_MAPS_KEY is not set in environment variables");
-      setMapError("Google Maps API key is not configured. Please set VITE_API_MAPS_KEY in your .env file.");
+      setMapError(
+        "Google Maps API key is not configured. Please set VITE_API_MAPS_KEY in your .env file."
+      );
     }
   }, [mapsApiKey]);
 
@@ -49,20 +54,22 @@ const Unload = () => {
   useEffect(() => {
     if (loadError) {
       console.error("Google Maps loading error:", loadError);
-      setMapError("Failed to load Google Maps. Please check your API key configuration.");
+      setMapError(
+        "Failed to load Google Maps. Please check your API key configuration."
+      );
     }
   }, [loadError]);
 
   // Format current date and time to mm/dd/yy hh:mm:ss am/pm format
   const formatCurrentDateTime = (): string => {
     const now = new Date();
-    
+
     // Format date as mm/dd/yy
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
     const year = String(now.getFullYear()).slice(-2);
     const formattedDate = `${month}/${day}/${year}`;
-    
+
     // Format time as hh:mm:ss am/pm
     let hours = now.getHours();
     const minutes = String(now.getMinutes()).padStart(2, "0");
@@ -72,7 +79,7 @@ const Unload = () => {
     hours = hours ? hours : 12; // the hour '0' should be '12'
     const formattedHours = String(hours).padStart(2, "0");
     const formattedTime = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
-    
+
     return `${formattedDate} ${formattedTime}`;
   };
 
@@ -114,7 +121,9 @@ const Unload = () => {
     } catch (error) {
       console.error("Error getting location:", error);
       setIsUpdatingLocation(false);
-      alert("Failed to get your location. Please check your location permissions.");
+      alert(
+        "Failed to get your location. Please check your location permissions."
+      );
     }
   }, []);
 
@@ -126,7 +135,7 @@ const Unload = () => {
           const location = await getCurrentLocation();
           console.log("Initial location fetched:", location);
           setUserLocation(location);
-          
+
           // Update map center if map is already loaded
           if (map && location) {
             map.setCenter(location);
@@ -149,15 +158,18 @@ const Unload = () => {
     }
   }, [map, userLocation]);
 
-  const onLoad = useCallback((mapInstance: google.maps.Map) => {
-    setMap(mapInstance);
-    console.log("Map loaded successfully, userLocation:", userLocation); // Debug log
-    // If we have a user location, center the map on it
-    if (userLocation) {
-      mapInstance.setCenter(userLocation);
-      mapInstance.setZoom(15);
-    }
-  }, [userLocation]);
+  const onLoad = useCallback(
+    (mapInstance: google.maps.Map) => {
+      setMap(mapInstance);
+      console.log("Map loaded successfully, userLocation:", userLocation); // Debug log
+      // If we have a user location, center the map on it
+      if (userLocation) {
+        mapInstance.setCenter(userLocation);
+        mapInstance.setZoom(15);
+      }
+    },
+    [userLocation]
+  );
 
   const onUnmount = useCallback(() => {
     setMap(null);
@@ -169,19 +181,23 @@ const Unload = () => {
 
   return (
     <>
-      <HeaderLayout 
-        screenName="Thanks. Your last job is complete." 
-        style={{ marginLeft: "20px", lineHeight: "1.2" }}
+      <HeaderLayout
+        screenName="Thanks. Your last job is complete."
+        style={{ marginLeft: "20px", lineHeight: "1.2", fontSize: "22px" }}
       />
       <p className="fs-sm">Last refresh time: {formatCurrentDateTime()}</p>
-      
+
       {/* Page Text on Top */}
       <div
         className="d-flex-cen"
-        style={{ flexDirection: "column", gap: "10px", padding: "10px 10px 5px 10px" }}
+        style={{
+          flexDirection: "column",
+          gap: "10px",
+          padding: "0px 10px 5px 10px",
+        }}
       >
         <ThemedText
-          style={{ fontSize: "20px", fontWeight: "bold", lineHeight: "1.5" }}
+          style={{ fontSize: "16px", fontWeight: "bold", lineHeight: "1.5" }}
           themeText="The dispatcher knows your location and will send you the next job accordingly. Please keep this page open to receive your job."
           classPassed="centertext"
         />
@@ -194,7 +210,13 @@ const Unload = () => {
           <div style={{ position: "relative", ...mapContainerStyle }}>
             {userLocation ? (
               <img
-                src={`https://maps.googleapis.com/maps/api/staticmap?center=${userLocation.lat},${userLocation.lng}&zoom=15&size=600x400&markers=color:red%7C${userLocation.lat},${userLocation.lng}&key=${mapsApiKey || ""}`}
+                src={`https://maps.googleapis.com/maps/api/staticmap?center=${
+                  userLocation.lat
+                },${
+                  userLocation.lng
+                }&zoom=15&size=600x400&markers=color:red%7C${
+                  userLocation.lat
+                },${userLocation.lng}&key=${mapsApiKey || ""}`}
                 alt="Map"
                 style={{
                   width: "100%",
@@ -204,7 +226,9 @@ const Unload = () => {
                 }}
                 onError={() => {
                   // If static map also fails, show error message
-                  setMapError("Unable to load map. Please check your internet connection.");
+                  setMapError(
+                    "Unable to load map. Please check your internet connection."
+                  );
                 }}
               />
             ) : (
@@ -221,7 +245,13 @@ const Unload = () => {
                   gap: "10px",
                 }}
               >
-                <p style={{ color: "#d93025", textAlign: "center", padding: "0 20px" }}>
+                <p
+                  style={{
+                    color: "#d93025",
+                    textAlign: "center",
+                    padding: "0 20px",
+                  }}
+                >
                   {mapError || "Map unavailable"}
                 </p>
               </div>
@@ -258,7 +288,7 @@ const Unload = () => {
             <p>Loading map...</p>
           </div>
         )}
-        
+
         {/* Update Location Button as Overlay on Bottom */}
         <button
           type="button"
