@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import Spinner from "../components/Spinner";
 import ThemedText from "../components/ThemedText";
@@ -9,9 +10,11 @@ import {
 } from "../services/adminService";
 
 const VoucherList = () => {
+  const [searchParams] = useSearchParams();
   const [vouchers, setVouchers] = useState<AdminVoucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   // Search state - Commented out for now, will be used when driver ID is available from backend
   // const [searchQuery, setSearchQuery] = useState<string>("");
@@ -19,14 +22,6 @@ const VoucherList = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
-  // Validate current page when vouchers or pageSize changes
-  useEffect(() => {
-    const totalPages = Math.ceil(vouchers.length / pageSize);
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
-    }
-  }, [vouchers.length, pageSize, currentPage]);
 
   const loadVouchers = useCallback(async () => {
     try {
@@ -57,10 +52,35 @@ const VoucherList = () => {
     }
   }, []);
 
-  // Load vouchers on component mount
+  // Check authorization on mount
   useEffect(() => {
-    loadVouchers();
-  }, [loadVouchers]);
+    const adminKey = import.meta.env.VITE_ADMIN_KEY;
+    const providedKey = searchParams.get("key");
+
+    if (!adminKey) {
+      console.warn("VITE_ADMIN_KEY is not set in environment variables");
+      setIsAuthorized(false);
+      setLoading(false);
+      return;
+    }
+
+    if (providedKey === adminKey) {
+      setIsAuthorized(true);
+      // Fetch vouchers if authorized
+      loadVouchers();
+    } else {
+      setIsAuthorized(false);
+      setLoading(false);
+    }
+  }, [searchParams, loadVouchers]);
+
+  // Validate current page when vouchers or pageSize changes
+  useEffect(() => {
+    const totalPages = Math.ceil(vouchers.length / pageSize);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [vouchers.length, pageSize, currentPage]);
 
   const handleDownload = async (voucher: AdminVoucher) => {
     const fileName = `voucher-${voucher.driverId}-${voucher.rideId}.png`;
@@ -152,10 +172,10 @@ const VoucherList = () => {
   };
 
   // Show loading state
-  if (loading) {
+  if (loading || isAuthorized === null) {
     return (
       <>
-        <HeaderLayout screenName="Driver Vouchers" />
+        <HeaderLayout screenName="Vouchers List" />
         <div
           style={{
             display: "flex",
@@ -165,6 +185,35 @@ const VoucherList = () => {
           }}
         >
           <Spinner />
+        </div>
+      </>
+    );
+  }
+
+  // Show 404 if not authorized
+  if (!isAuthorized) {
+    return (
+      <>
+        <HeaderLayout screenName="404 - Not Found" />
+        <div
+          className="d-flex-cen"
+          style={{ height: "80vh", flexDirection: "column", gap: "30px" }}
+        >
+          <ThemedText
+            themeText="404"
+            classPassed="centertext"
+            style={{ fontSize: "4rem", color: "#d32f2f", fontWeight: "bold" }}
+          />
+          <ThemedText
+            themeText="Page Not Found"
+            classPassed="centertext"
+            style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+          />
+          <ThemedText
+            themeText="The page you are looking for does not exist."
+            classPassed="centertext"
+          />
+          <div className="divider"></div>
         </div>
       </>
     );

@@ -14,7 +14,6 @@ import DebugScreen from "./screens/DebugScreen";
 import EnsureTimestampParam from "./components/EnsureTimestampParam";
 import { addTimestampParam } from "./utils/addTimestampParam";
 
-
 console.log("environment", import.meta.env.VITE_ENV);
 /// before we are calling res in action we need to confirm the res status code and message before dispatching the action
 const App: React.FC = () => {
@@ -23,9 +22,13 @@ const App: React.FC = () => {
       <EnsureTimestampParam>
         <Routes>
           {/* Redirect root path to join-us with ts param */}
-          <Route path="/" element={<Navigate to={addTimestampParam("/join-us")} replace />} />
+          <Route
+            path="/"
+            element={<Navigate to={addTimestampParam("/join-us")} replace />}
+          />
+          {/* Admin vouchers route - protected with key parameter */}
+          <Route path="/admin/vouchers" element={<VoucherList />} />
           {/* Fallback to redirect to the appropriate screen based on job status */}
-          <Route path="/:jobId/vouchers" element={<VoucherList />} />
           <Route path="/:jobId/*" element={<IndexScreen />} />
           <Route path="/join-us" element={<Home />} />
           <Route path="/basic-info" element={<BasicInfo />} />
