@@ -13,8 +13,8 @@ const VoucherList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  // Search state - Commented out for now, will be used when driver ID is available from backend
+  // const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,28 +68,32 @@ const VoucherList = () => {
   };
 
   // Filter vouchers based on search query (jobId or voucher name/fileName)
-  const filteredVouchers = vouchers.filter((voucher) => {
-    if (!searchQuery.trim()) {
-      return true; // Show all if search is empty
-    }
+  // Commented out for now, will be used when driver ID is available from backend
+  // const filteredVouchers = vouchers.filter((voucher) => {
+  //   if (!searchQuery.trim()) {
+  //     return true; // Show all if search is empty
+  //   }
 
-    const query = searchQuery.toLowerCase().trim();
-    const jobId = voucher.rideId?.toLowerCase() || "";
-    const fileName = voucher.fileName?.toLowerCase() || "";
-    const driverId = voucher.driverId?.toLowerCase() || "";
+  //   const query = searchQuery.toLowerCase().trim();
+  //   const jobId = voucher.rideId?.toLowerCase() || "";
+  //   const fileName = voucher.fileName?.toLowerCase() || "";
+  //   const driverId = voucher.driverId?.toLowerCase() || "";
 
-    // Search in jobId (rideId), fileName, or driverId
-    return (
-      jobId.includes(query) ||
-      fileName.includes(query) ||
-      driverId.includes(query)
-    );
-  });
+  //   // Search in jobId (rideId), fileName, or driverId
+  //   return (
+  //     jobId.includes(query) ||
+  //     fileName.includes(query) ||
+  //     driverId.includes(query)
+  //   );
+  // });
 
   // Reset to first page when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [searchQuery]);
+
+  // For now, use all vouchers without filtering
+  const filteredVouchers = vouchers;
 
   // Pagination calculations based on filtered vouchers
   const totalItems = filteredVouchers.length;
@@ -98,9 +102,10 @@ const VoucherList = () => {
   const endIndex = startIndex + pageSize;
   const currentVouchers = filteredVouchers.slice(startIndex, endIndex);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  // Search handler - Commented out for now, will be used when driver ID is available from backend
+  // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSearchQuery(e.target.value);
+  // };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -197,8 +202,8 @@ const VoucherList = () => {
           </div>
         )}
 
-        {/* Search Bar - Show when vouchers exist or when loading is done */}
-        {(!loading && !error) && (
+        {/* Search Bar - Commented out for now, will be used when driver ID is available from backend */}
+        {/* {(!loading && !error) && (
           <div
             style={{
               marginBottom: "20px",
@@ -259,10 +264,10 @@ const VoucherList = () => {
               )}
             </div>
           </div>
-        )}
+        )} */}
 
-        {/* Show search results count */}
-        {searchQuery && filteredVouchers.length > 0 && (
+        {/* Show search results count - Commented out for now */}
+        {/* {searchQuery && filteredVouchers.length > 0 && (
           <div
             style={{
               marginBottom: "15px",
@@ -273,7 +278,7 @@ const VoucherList = () => {
             Showing {filteredVouchers.length} of {vouchers.length} vouchers
             matching "<strong>{searchQuery}</strong>"
           </div>
-        )}
+        )} */}
 
         {/* Table - Always show when not loading and no error */}
         {!loading && !error && (
@@ -281,9 +286,10 @@ const VoucherList = () => {
             <table className="antd-style-table">
               <thead>
                 <tr>
-                  <th>Driver ID</th>
-                  <th style={{ width: "200px" }}>Ride ID</th>
-                  <th>Voucher</th>
+                  {/* Driver ID column - Commented out for now, will be used when driver ID is available from backend */}
+                  {/* <th>Driver ID</th> */}
+                  <th style={{ width: "200px" }}>Reservation ID</th>
+                  <th>Voucher Image</th>
                   <th style={{ textAlign: "center" }}>Action</th>
                 </tr>
               </thead>
@@ -291,7 +297,7 @@ const VoucherList = () => {
                 {filteredVouchers.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={3}
                       style={{
                         textAlign: "center",
                         padding: "40px 20px",
@@ -305,7 +311,8 @@ const VoucherList = () => {
                 ) : (
                   currentVouchers.map((voucher, index) => (
                     <tr key={`${voucher.driverId}-${voucher.rideId}-${index}`}>
-                      <td>{voucher.driverId}</td>
+                      {/* Driver ID cell - Commented out for now, will be used when driver ID is available from backend */}
+                      {/* <td>{voucher.driverId}</td> */}
                       <td
                         style={{
                           width: "200px",
