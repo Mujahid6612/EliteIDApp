@@ -100,16 +100,8 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
       throw new Error("Voucher file is required.");
     }
 
-    // Generate file name with format: {ReservationNumber}-{startDate}-{endDate}-voucher.{extension}
-    // Use both start date (14 days back) and end date (today) to match the API date range logic
-    // This matches the same date range used in list-vouchers API (today to 14 days back)
-    const today = new Date();
-    const twoWeeksAgo = new Date();
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-    const startDate = twoWeeksAgo.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const endDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    const baseFileName = voucherFileNameGenerator(actualJobId, startDate, endDate);
+    // Generate file name with format: {ReservationNumber}-{dateString}-voucher.{extension}
+    const baseFileName = voucherFileNameGenerator(actualJobId);
     
     // Get file extension from the original file
     const fileExtension = voucherFile.name.split('.').pop() || 'png';

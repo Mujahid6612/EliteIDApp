@@ -16,27 +16,46 @@ const VoucherList = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Search state - Commented out for now, will be used when driver ID is available from backend
-  // const [searchQuery, setSearchQuery] = useState<string>("");
+  // Search state
+  const [reservationNumber, setReservationNumber] = useState<string>("");
+  
+  // Date range state with defaults
+  const getDefaultDates = () => {
+    const today = new Date();
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    return {
+      startDate: twoWeeksAgo.toISOString().split('T')[0], // YYYY-MM-DD format
+      endDate: today.toISOString().split('T')[0], // YYYY-MM-DD format
+    };
+  };
+  
+  // Get today's date in YYYY-MM-DD format for max date validation
+  const getTodayDateString = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+  
+  const [startDate, setStartDate] = useState<string>(getDefaultDates().startDate);
+  const [endDate, setEndDate] = useState<string>(getDefaultDates().endDate);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const loadVouchers = useCallback(async () => {
+  const loadVouchers = useCallback(async (start?: string, end?: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch vouchers with default date range (today to 14 days back)
-      const data = await fetchAdminVouchers();
+      // Fetch vouchers with provided date range or defaults
+      const data = await fetchAdminVouchers(start, end);
       setVouchers(data);
       setCurrentPage(1); // Reset to first page when loading new data
 
       // If no vouchers found, show a message
       if (data.length === 0) {
         setError(
-          "No vouchers found for the selected date range (last 14 days)."
+          "No vouchers found for the selected date range."
         );
       }
     } catch (err) {
@@ -66,13 +85,14 @@ const VoucherList = () => {
 
     if (providedKey === adminKey) {
       setIsAuthorized(true);
-      // Fetch vouchers if authorized
-      loadVouchers();
+      // Fetch vouchers if authorized with default date range
+      loadVouchers(startDate, endDate);
     } else {
       setIsAuthorized(false);
       setLoading(false);
     }
-  }, [searchParams, loadVouchers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Validate current page when vouchers or pageSize changes
   useEffect(() => {
@@ -87,33 +107,29 @@ const VoucherList = () => {
     await downloadVoucher(voucher.voucherUrl, fileName);
   };
 
-  // Filter vouchers based on search query (jobId or voucher name/fileName)
-  // Commented out for now, will be used when driver ID is available from backend
-  // const filteredVouchers = vouchers.filter((voucher) => {
-  //   if (!searchQuery.trim()) {
-  //     return true; // Show all if search is empty
-  //   }
+  // Handle search button click - only triggers on button click, no auto-search or debounce
+  const handleSearch = async () => {
+    // Call API with date range payload (backend filter)
+    // The API will be called with startDate and endDate as query parameters
+    await loadVouchers(startDate, endDate);
+    // Frontend filter by reservation number will be applied in filteredVouchers
+    setCurrentPage(1); // Reset to first page
+  };
 
-  //   const query = searchQuery.toLowerCase().trim();
-  //   const jobId = voucher.rideId?.toLowerCase() || "";
-  //   const fileName = voucher.fileName?.toLowerCase() || "";
-  //   const driverId = voucher.driverId?.toLowerCase() || "";
+  // Filter vouchers by reservation number (frontend filter)
+  // This filter is applied after API call returns data
+  // Only filters when user has clicked Search button
+  const filteredVouchers = vouchers.filter((voucher) => {
+    if (!reservationNumber.trim()) {
+      return true; // Show all if search is empty
+    }
 
-  //   // Search in jobId (rideId), fileName, or driverId
-  //   return (
-  //     jobId.includes(query) ||
-  //     fileName.includes(query) ||
-  //     driverId.includes(query)
-  //   );
-  // });
+    const query = reservationNumber.toLowerCase().trim();
+    const rideId = voucher.rideId?.toLowerCase() || "";
 
-  // Reset to first page when search changes
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [searchQuery]);
-
-  // For now, use all vouchers without filtering
-  const filteredVouchers = vouchers;
+    // Search in reservation number (rideId)
+    return rideId.includes(query);
+  });
 
   // Pagination calculations based on filtered vouchers
   const totalItems = filteredVouchers.length;
@@ -251,6 +267,123 @@ const VoucherList = () => {
           </div>
         )}
 
+        {/* Search and Filter Section */}
+        {(!loading && !error) && (
+          <div className="filter-container">
+            {/* Reservation Number Search */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <label
+                style={{
+                  fontSize: "0.9rem",
+                  fontWeight: "500",
+                  color: "#333",
+                  marginBottom: "5px",
+                }}
+              >
+                Search by Reservation Number
+              </label>
+              <input
+                type="text"
+                value={reservationNumber}
+                onChange={(e) => setReservationNumber(e.target.value)}
+                placeholder="Enter Reservation Number..."
+                className="filter-input"
+                style={{
+                  padding: "10px 12px",
+                  fontSize: "1rem",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  backgroundColor: "#fff",
+                  boxSizing: "border-box",
+                  width: "100%",
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+              />
+            </div>
+
+            {/* Date Range Filters */}
+            <div className="filter-date-grid">
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <label
+                  style={{
+                    fontSize: "0.9rem",
+                    fontWeight: "500",
+                    color: "#333",
+                    marginBottom: "5px",
+                  }}
+                >
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="filter-input"
+                  style={{
+                    padding: "10px 12px",
+                    fontSize: "1rem",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    backgroundColor: "#fff",
+                    boxSizing: "border-box",
+                    width: "100%",
+                  }}
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <label
+                  style={{
+                    fontSize: "0.9rem",
+                    fontWeight: "500",
+                    color: "#333",
+                    marginBottom: "5px",
+                  }}
+                >
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    const selectedDate = e.target.value;
+                    const today = getTodayDateString();
+                    // Prevent selecting future dates
+                    if (selectedDate <= today) {
+                      setEndDate(selectedDate);
+                    }
+                  }}
+                  max={getTodayDateString()}
+                  className="filter-input"
+                  style={{
+                    padding: "10px 12px",
+                    fontSize: "1rem",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    backgroundColor: "#fff",
+                    boxSizing: "border-box",
+                    width: "100%",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Search Button */}
+            <div className="filter-search-button-container">
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="filter-search-button"
+              >
+                {loading ? "Searching..." : "Search"}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Search Bar - Commented out for now, will be used when driver ID is available from backend */}
         {/* {(!loading && !error) && (
           <div
@@ -315,8 +448,8 @@ const VoucherList = () => {
           </div>
         )} */}
 
-        {/* Show search results count - Commented out for now */}
-        {/* {searchQuery && filteredVouchers.length > 0 && (
+        {/* Show search results count */}
+        {reservationNumber && filteredVouchers.length > 0 && (
           <div
             style={{
               marginBottom: "15px",
@@ -325,9 +458,9 @@ const VoucherList = () => {
             }}
           >
             Showing {filteredVouchers.length} of {vouchers.length} vouchers
-            matching "<strong>{searchQuery}</strong>"
+            {reservationNumber && ` matching "<strong>${reservationNumber}</strong>"`}
           </div>
-        )} */}
+        )}
 
         {/* Table - Always show when not loading and no error */}
         {!loading && !error && (
