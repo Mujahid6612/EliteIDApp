@@ -197,33 +197,17 @@ const VoucherList = () => {
           </div>
         )}
 
-        {vouchers.length === 0 && !error && !loading && (
-          <div className="location-container" style={{ padding: "40px" }}>
-            <ThemedText
-              themeText="No vouchers found for the selected date range."
-              classPassed="centertext"
-              style={{ fontSize: "1.1rem", color: "#666" }}
-            />
-          </div>
-        )}
-
-        {vouchers.length > 0 && (
-          <>
-            {/* Search Bar */}
-            <div
-              style={{
-                marginBottom: "20px",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-              }}
-            >
-              <label
-                htmlFor="searchInput"
-                style={{ fontWeight: "500", fontSize: "1rem" }}
-              >
-                Search:
-              </label>
+        {/* Search Bar - Show when vouchers exist or when loading is done */}
+        {(!loading && !error) && (
+          <div
+            style={{
+              marginBottom: "20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <div style={{ position: "relative", flex: 1, width: "100%" }}>
               <input
                 id="searchInput"
                 type="text"
@@ -231,61 +215,107 @@ const VoucherList = () => {
                 onChange={handleSearchChange}
                 placeholder="Search by Job ID, Driver ID, or Voucher Name..."
                 style={{
-                  padding: "8px 12px",
+                  padding: "8px 35px 8px 12px",
                   fontSize: "1rem",
                   border: "1px solid #ddd",
                   borderRadius: "4px",
-                  flex: 1,
-                  maxWidth: "500px",
+                  width: "100%",
                   backgroundColor: "#fff",
+                  boxSizing: "border-box",
                 }}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
                   style={{
-                    padding: "8px 16px",
-                    fontSize: "0.9rem",
-                    backgroundColor: "#f5f5f5",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
+                    position: "absolute",
+                    right: "8px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
                     cursor: "pointer",
+                    padding: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#666",
                   }}
+                  title="Clear search"
                 >
-                  Clear
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                      fill="currentColor"
+                    />
+                  </svg>
                 </button>
               )}
             </div>
+          </div>
+        )}
 
-            {/* Show search results count */}
-            {searchQuery && (
-              <div
-                style={{
-                  marginBottom: "15px",
-                  color: "#666",
-                  fontSize: "0.95rem",
-                }}
-              >
-                Showing {filteredVouchers.length} of {vouchers.length} vouchers
-                matching "<strong>{searchQuery}</strong>"
-              </div>
-            )}
+        {/* Show search results count */}
+        {searchQuery && filteredVouchers.length > 0 && (
+          <div
+            style={{
+              marginBottom: "15px",
+              color: "#666",
+              fontSize: "0.95rem",
+            }}
+          >
+            Showing {filteredVouchers.length} of {vouchers.length} vouchers
+            matching "<strong>{searchQuery}</strong>"
+          </div>
+        )}
 
-            <div className="table-container">
-              <table className="antd-style-table">
-                <thead>
+        {/* Table - Always show when not loading and no error */}
+        {!loading && !error && (
+          <div className="table-container">
+            <table className="antd-style-table">
+              <thead>
+                <tr>
+                  <th>Driver ID</th>
+                  <th style={{ width: "200px" }}>Ride ID</th>
+                  <th>Voucher</th>
+                  <th style={{ textAlign: "center" }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredVouchers.length === 0 ? (
                   <tr>
-                    <th>Driver ID</th>
-                    <th>Ride ID</th>
-                    <th>Voucher</th>
-                    <th style={{ textAlign: "center" }}>Action</th>
+                    <td
+                      colSpan={4}
+                      style={{
+                        textAlign: "center",
+                        padding: "40px 20px",
+                        color: "#666",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      No Data Found
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {currentVouchers.map((voucher, index) => (
+                ) : (
+                  currentVouchers.map((voucher, index) => (
                     <tr key={`${voucher.driverId}-${voucher.rideId}-${index}`}>
                       <td>{voucher.driverId}</td>
-                      <td>{voucher.rideId}</td>
+                      <td
+                        style={{
+                          width: "200px",
+                          wordWrap: "break-word",
+                          wordBreak: "break-all",
+                          whiteSpace: "normal",
+                        }}
+                      >
+                        {voucher.rideId}
+                      </td>
                       <td>
                         <img
                           src={voucher.voucherUrl}
@@ -318,13 +348,16 @@ const VoucherList = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-            {/* Pagination */}
-            <div className="antd-pagination">
+        {/* Pagination - Show only when there are filtered vouchers */}
+        {!loading && !error && filteredVouchers.length > 0 && (
+          <div className="antd-pagination">
               <div className="pagination-info">
                 Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} entries
@@ -389,7 +422,6 @@ const VoucherList = () => {
                 </div>
               </div>
             </div>
-          </>
         )}
       </div>
     </>
