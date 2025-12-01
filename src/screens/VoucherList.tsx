@@ -17,7 +17,8 @@ const VoucherList = () => {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   // Search state
-  const [reservationNumber, setReservationNumber] = useState<string>("");
+  const [reservationNumber, setReservationNumber] = useState<string>(""); // Input value
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState<string>(""); // Applied filter (only updated on button click)
   
   // Date range state with defaults
   const getDefaultDates = () => {
@@ -109,6 +110,8 @@ const VoucherList = () => {
 
   // Handle search button click - only triggers on button click, no auto-search or debounce
   const handleSearch = async () => {
+    // Apply the search term (only when button is clicked)
+    setAppliedSearchTerm(reservationNumber.trim());
     // Call API with date range payload (backend filter)
     // The API will be called with startDate and endDate as query parameters
     await loadVouchers(startDate, endDate);
@@ -449,7 +452,7 @@ const VoucherList = () => {
         )} */}
 
         {/* Show search results count */}
-        {reservationNumber && filteredVouchers.length > 0 && (
+        {appliedSearchTerm && filteredVouchers.length > 0 && (
           <div
             style={{
               marginBottom: "15px",
@@ -457,8 +460,21 @@ const VoucherList = () => {
               fontSize: "0.95rem",
             }}
           >
-            Showing {filteredVouchers.length} of {vouchers.length} vouchers
-            {reservationNumber && ` matching "<strong>${reservationNumber}</strong>"`}
+            Showing {filteredVouchers.length} of {vouchers.length} vouchers matching{" "}
+            <strong style={{ color: "#1976d2", fontWeight: "600" }}>"{appliedSearchTerm}"</strong>
+          </div>
+        )}
+        {appliedSearchTerm && filteredVouchers.length === 0 && vouchers.length > 0 && (
+          <div
+            style={{
+              marginBottom: "15px",
+              color: "#d32f2f",
+              fontSize: "0.95rem",
+            }}
+          >
+            No vouchers found matching{" "}
+            <strong style={{ color: "#d32f2f", fontWeight: "600" }}>"{appliedSearchTerm}"</strong>
+            {" "}out of {vouchers.length} vouchers
           </div>
         )}
 
