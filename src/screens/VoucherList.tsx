@@ -1,19 +1,21 @@
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout";
 import Spinner from "../components/Spinner";
 import ThemedText from "../components/ThemedText";
-import { fetchAdminVouchers, downloadVoucher, AdminVoucher } from "../services/adminService";
+import {
+  fetchAdminVouchers,
+  downloadVoucher,
+  AdminVoucher,
+} from "../services/adminService";
 
 const VoucherList = () => {
-  const [searchParams] = useSearchParams();
   const [vouchers, setVouchers] = useState<AdminVoucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Filter state
-  const [selectedJobId, setSelectedJobId] = useState<string>("all");
-  
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -30,37 +32,32 @@ const VoucherList = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const driverId = searchParams.get("driverId");
-      
-      // Check if driverId is provided
-      if (!driverId || driverId.trim() === "") {
-        setError("Driver ID is required. Please provide a valid driverId in the URL (e.g., /admin/vouchers?driverId=YOUR_DRIVER_ID)");
-        setVouchers([]);
-        setLoading(false);
-        return;
-      }
 
-      const data = await fetchAdminVouchers(driverId);
+      // Fetch vouchers with default date range (today to 14 days back)
+      const data = await fetchAdminVouchers();
       setVouchers(data);
-      setSelectedJobId("all"); // Reset filter when loading new data
       setCurrentPage(1); // Reset to first page when loading new data
-      
+
       // If no vouchers found, show a message
       if (data.length === 0) {
-        setError(`No vouchers found for driver ID: ${driverId}`);
+        setError(
+          "No vouchers found for the selected date range (last 14 days)."
+        );
       }
     } catch (err) {
       console.error("Error loading vouchers:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to load vouchers. Please try again later.";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to load vouchers. Please try again later.";
       setError(errorMessage);
       setVouchers([]);
     } finally {
       setLoading(false);
     }
-  }, [searchParams]);
+  }, []);
 
-  // Load vouchers based on driverId from query params
+  // Load vouchers on component mount
   useEffect(() => {
     loadVouchers();
   }, [loadVouchers]);
@@ -70,18 +67,29 @@ const VoucherList = () => {
     await downloadVoucher(voucher.voucherUrl, fileName);
   };
 
-  // Extract unique job IDs (rideId) from vouchers
-  const uniqueJobIds = Array.from(new Set(vouchers.map(v => v.rideId))).sort();
+  // Filter vouchers based on search query (jobId or voucher name/fileName)
+  const filteredVouchers = vouchers.filter((voucher) => {
+    if (!searchQuery.trim()) {
+      return true; // Show all if search is empty
+    }
 
-  // Filter vouchers based on selected job ID
-  const filteredVouchers = selectedJobId === "all" 
-    ? vouchers 
-    : vouchers.filter(voucher => voucher.rideId === selectedJobId);
+    const query = searchQuery.toLowerCase().trim();
+    const jobId = voucher.rideId?.toLowerCase() || "";
+    const fileName = voucher.fileName?.toLowerCase() || "";
+    const driverId = voucher.driverId?.toLowerCase() || "";
 
-  // Reset to first page when filter changes
+    // Search in jobId (rideId), fileName, or driverId
+    return (
+      jobId.includes(query) ||
+      fileName.includes(query) ||
+      driverId.includes(query)
+    );
+  });
+
+  // Reset to first page when search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedJobId]);
+  }, [searchQuery]);
 
   // Pagination calculations based on filtered vouchers
   const totalItems = filteredVouchers.length;
@@ -90,8 +98,8 @@ const VoucherList = () => {
   const endIndex = startIndex + pageSize;
   const currentVouchers = filteredVouchers.slice(startIndex, endIndex);
 
-  const handleJobIdFilterChange = (jobId: string) => {
-    setSelectedJobId(jobId);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
   const handlePageChange = (page: number) => {
@@ -107,7 +115,7 @@ const VoucherList = () => {
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxVisible = 7;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -143,7 +151,14 @@ const VoucherList = () => {
     return (
       <>
         <HeaderLayout screenName="Driver Vouchers" />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "80vh",
+          }}
+        >
           <Spinner />
         </div>
       </>
@@ -151,22 +166,31 @@ const VoucherList = () => {
   }
 
   // Show vouchers table
-  const driverId = searchParams.get("driverId");
-  
   return (
     <>
-      <HeaderLayout screenName="Driver Vouchers" />
+      <HeaderLayout screenName="Vouchers List" />
       <div className="ml-10 mr-10" style={{ marginBottom: "30px" }}>
         <ThemedText
-          themeText={"Vouchers List"}
+          themeText="Vouchers List"
           classPassed="lefttext"
-          style={{ marginBottom: "20px", fontSize: "1.5rem", fontWeight: "bold" }}
+          style={{
+            marginBottom: "20px",
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+          }}
         />
 
         {error && (
-          <div className="location-container" style={{ backgroundColor: "#ffebee", marginBottom: "20px", padding: "20px" }}>
-            <ThemedText 
-              themeText={error} 
+          <div
+            className="location-container"
+            style={{
+              backgroundColor: "#ffebee",
+              marginBottom: "20px",
+              padding: "20px",
+            }}
+          >
+            <ThemedText
+              themeText={error}
               classPassed="centertext"
               style={{ color: "#d32f2f", fontSize: "1.1rem" }}
             />
@@ -176,7 +200,7 @@ const VoucherList = () => {
         {vouchers.length === 0 && !error && !loading && (
           <div className="location-container" style={{ padding: "40px" }}>
             <ThemedText
-              themeText={`No vouchers found for driver ID: ${driverId || "unknown"}`}
+              themeText="No vouchers found for the selected date range."
               classPassed="centertext"
               style={{ fontSize: "1.1rem", color: "#666" }}
             />
@@ -185,38 +209,40 @@ const VoucherList = () => {
 
         {vouchers.length > 0 && (
           <>
-            {/* Job ID Filter */}
-            <div style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
-              <label htmlFor="jobIdFilter" style={{ fontWeight: "500", fontSize: "1rem" }}>
-                Filter by Job ID:
+            {/* Search Bar */}
+            <div
+              style={{
+                marginBottom: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <label
+                htmlFor="searchInput"
+                style={{ fontWeight: "500", fontSize: "1rem" }}
+              >
+                Search:
               </label>
-              <select
-                id="jobIdFilter"
-                value={selectedJobId}
-                onChange={(e) => handleJobIdFilterChange(e.target.value)}
+              <input
+                id="searchInput"
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search by Job ID, Driver ID, or Voucher Name..."
                 style={{
                   padding: "8px 12px",
                   fontSize: "1rem",
                   border: "1px solid #ddd",
                   borderRadius: "4px",
-                  minWidth: "200px",
+                  flex: 1,
+                  maxWidth: "500px",
                   backgroundColor: "#fff",
-                  cursor: "pointer",
                 }}
-              >
-                <option value="all">All Job IDs ({vouchers.length})</option>
-                {uniqueJobIds.map((jobId) => {
-                  const count = vouchers.filter(v => v.rideId === jobId).length;
-                  return (
-                    <option key={jobId} value={jobId}>
-                      {jobId} ({count})
-                    </option>
-                  );
-                })}
-              </select>
-              {selectedJobId !== "all" && (
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => handleJobIdFilterChange("all")}
+                  onClick={() => setSearchQuery("")}
                   style={{
                     padding: "8px 16px",
                     fontSize: "0.9rem",
@@ -226,15 +252,22 @@ const VoucherList = () => {
                     cursor: "pointer",
                   }}
                 >
-                  Clear Filter
+                  Clear
                 </button>
               )}
             </div>
 
-            {/* Show filtered count */}
-            {selectedJobId !== "all" && (
-              <div style={{ marginBottom: "15px", color: "#666", fontSize: "0.95rem" }}>
-                Showing {filteredVouchers.length} of {vouchers.length} vouchers for Job ID: <strong>{selectedJobId}</strong>
+            {/* Show search results count */}
+            {searchQuery && (
+              <div
+                style={{
+                  marginBottom: "15px",
+                  color: "#666",
+                  fontSize: "0.95rem",
+                }}
+              >
+                Showing {filteredVouchers.length} of {vouchers.length} vouchers
+                matching "<strong>{searchQuery}</strong>"
               </div>
             )}
 
@@ -259,7 +292,8 @@ const VoucherList = () => {
                           alt={`Voucher ${voucher.rideId}`}
                           className="voucher-image"
                           onError={(e) => {
-                            e.currentTarget.src = "https://via.placeholder.com/80/cccccc/666666?text=No+Image";
+                            e.currentTarget.src =
+                              "https://via.placeholder.com/80/cccccc/666666?text=No+Image";
                           }}
                         />
                       </td>
@@ -292,7 +326,8 @@ const VoucherList = () => {
             {/* Pagination */}
             <div className="antd-pagination">
               <div className="pagination-info">
-                Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} entries
+                Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of{" "}
+                {totalItems} entries
               </div>
               <div className="pagination-controls">
                 <select
@@ -305,35 +340,49 @@ const VoucherList = () => {
                   <option value={50}>50 / page</option>
                   <option value={100}>100 / page</option>
                 </select>
-                
+
                 <div className="pagination-buttons">
                   <button
                     className="pagination-btn"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
                     </svg>
                   </button>
-                  
+
                   {getPageNumbers().map((page, index) => (
                     <button
                       key={index}
-                      className={`pagination-btn ${page === currentPage ? "active" : ""} ${page === "..." ? "ellipsis" : ""}`}
-                      onClick={() => typeof page === "number" && handlePageChange(page)}
+                      className={`pagination-btn ${
+                        page === currentPage ? "active" : ""
+                      } ${page === "..." ? "ellipsis" : ""}`}
+                      onClick={() =>
+                        typeof page === "number" && handlePageChange(page)
+                      }
                       disabled={page === "..."}
                     >
                       {page}
                     </button>
                   ))}
-                  
+
                   <button
                     className="pagination-btn"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
                     </svg>
                   </button>

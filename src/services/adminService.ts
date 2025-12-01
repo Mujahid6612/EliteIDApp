@@ -2,20 +2,32 @@ export interface AdminVoucher {
     driverId: string;
     rideId: string;
     voucherUrl: string;
+    fileName?: string;
   }
   
   /**
-   * Fetch vouchers for a specific driver
-   * @param driverId - The driver ID to fetch vouchers for
-   * @returns Array of vouchers for the driver
+   * Fetch vouchers based on date range (default: today to 14 days back)
+   * @param startDate - Optional start date in YYYY-MM-DD format
+   * @param endDate - Optional end date in YYYY-MM-DD format
+   * @returns Array of vouchers within the date range
    */
-  export const fetchAdminVouchers = async (driverId: string): Promise<AdminVoucher[]> => {
-    if (!driverId || driverId.trim() === "") {
-      throw new Error("driverId is required");
-    }
-
+  export const fetchAdminVouchers = async (startDate?: string, endDate?: string): Promise<AdminVoucher[]> => {
     try {
-      const response = await fetch(`/api/list-vouchers?driverId=${encodeURIComponent(driverId)}`);
+      let url = "/api/list-vouchers";
+      const params = new URLSearchParams();
+      
+      if (startDate) {
+        params.append("startDate", startDate);
+      }
+      if (endDate) {
+        params.append("endDate", endDate);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await fetch(url);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Failed to fetch vouchers" }));

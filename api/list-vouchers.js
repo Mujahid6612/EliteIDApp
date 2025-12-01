@@ -9,12 +9,31 @@ export default async function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
 
   try {
-    const { driverId } = req.query;
+    const { startDate, endDate } = req.query;
 
-    // driverId is required
-    if (!driverId || driverId.trim() === "") {
+    // Calculate default date range: today to 14 days back
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+    
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    twoWeeksAgo.setHours(0, 0, 0, 0); // Start of day 14 days ago
+
+    // Use provided dates or defaults
+    const endDateObj = endDate ? new Date(endDate) : today;
+    const startDateObj = startDate ? new Date(startDate) : twoWeeksAgo;
+
+    // Validate dates
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
       return res.status(400).json({ 
-        error: "driverId is required",
+        error: "Invalid date format. Use YYYY-MM-DD format.",
+        vouchers: []
+      });
+    }
+
+    if (startDateObj > endDateObj) {
+      return res.status(400).json({ 
+        error: "Start date must be before or equal to end date",
         vouchers: []
       });
     }
@@ -48,12 +67,12 @@ export default async function handler(req, res) {
       return null;
     };
 
-    // Filter vouchers by driverId and parse the filename
+    // Filter vouchers by date range and parse the filename
     const filteredBlobs = blobs
       .filter((blob) => {
-        const fileName = blob.pathname.split("/").pop() || "";
-        // Check if filename starts with the driverId
-        return fileName.startsWith(`${driverId}-`);
+        const uploadDate = new Date(blob.uploadedAt);
+        // Check if upload date is within the date range
+        return uploadDate >= startDateObj && uploadDate <= endDateObj;
       })
       .map((blob) => {
         const fileName = blob.pathname.split("/").pop() || "";
@@ -63,25 +82,28 @@ export default async function handler(req, res) {
           id: blob.pathname,
           url: blob.url,
           fileName: fileName,
-          driverId: parsed?.driverId || driverId,
+          driverId: parsed?.driverId || "unknown",
           rideId: parsed?.rideId || "unknown",
           uploadedAt: blob.uploadedAt,
           size: blob.size,
         };
-      })
-      .filter((voucher) => voucher.driverId === driverId); // Double check driverId matches
+      });
 
     // Format the response to match AdminVoucher interface
     const vouchers = filteredBlobs.map((voucher) => ({
       driverId: voucher.driverId,
       rideId: voucher.rideId,
       voucherUrl: voucher.url,
+      fileName: voucher.fileName,
     }));
 
     return res.status(200).json({ vouchers });
   } catch (error) {
     console.error("Failed to list vouchers", error);
-    return res.status(500).json({ error: error?.message || "Failed to list vouchers" });
+    return res.status(500).json({ 
+      error: error?.message || "Failed to list vouchers",
+      vouchers: []
+    });
   }
 }
 
