@@ -19,6 +19,9 @@ const VoucherList = () => {
   // Search state
   const [reservationNumber, setReservationNumber] = useState<string>(""); // Input value
   const [appliedSearchTerm, setAppliedSearchTerm] = useState<string>(""); // Applied filter (only updated on button click)
+  const [driverId, setDriverId] = useState<string>(""); // Driver ID input value
+  const [appliedDriverIdSearchTerm, setAppliedDriverIdSearchTerm] = useState<string>(""); // Applied Driver ID filter (only updated on button click)
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState<boolean>(true); // Collapsible filters state
   
   // Date range state with defaults
   const getDefaultDates = () => {
@@ -41,7 +44,7 @@ const VoucherList = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(100);
 
   const loadVouchers = useCallback(async (start?: string, end?: string) => {
     try {
@@ -50,15 +53,12 @@ const VoucherList = () => {
 
       // Fetch vouchers with provided date range or defaults
       const data = await fetchAdminVouchers(start, end);
-      setVouchers(data);
+      // Handle null or undefined data
+      const vouchersData = data || [];
+      setVouchers(vouchersData);
       setCurrentPage(1); // Reset to first page when loading new data
 
-      // If no vouchers found, show a message
-      if (data.length === 0) {
-        setError(
-          "No vouchers found for the selected date range."
-        );
-      }
+      // Don't set error for empty data - just show empty state in table
     } catch (err) {
       console.error("Error loading vouchers:", err);
       const errorMessage =
@@ -110,28 +110,28 @@ const VoucherList = () => {
 
   // Handle search button click - only triggers on button click, no auto-search or debounce
   const handleSearch = async () => {
-    // Apply the search term (only when button is clicked)
+    // Apply the search terms (only when button is clicked)
     setAppliedSearchTerm(reservationNumber.trim());
+    setAppliedDriverIdSearchTerm(driverId.trim());
     // Call API with date range payload (backend filter)
     // The API will be called with startDate and endDate as query parameters
     await loadVouchers(startDate, endDate);
-    // Frontend filter by reservation number will be applied in filteredVouchers
+    // Frontend filter by reservation number and driver ID will be applied in filteredVouchers
     setCurrentPage(1); // Reset to first page
   };
 
-  // Filter vouchers by reservation number (frontend filter)
+  // Filter vouchers by reservation number and driver ID (frontend filter)
   // This filter is applied after API call returns data
   // Only filters when user has clicked Search button
   const filteredVouchers = vouchers.filter((voucher) => {
-    if (!reservationNumber.trim()) {
-      return true; // Show all if search is empty
-    }
+    const reservationMatch = !appliedSearchTerm.trim() || 
+      (voucher.rideId?.toLowerCase() || "").includes(appliedSearchTerm.toLowerCase().trim());
+    
+    const driverIdMatch = !appliedDriverIdSearchTerm.trim() || 
+      (voucher.driverId?.toLowerCase() || "").includes(appliedDriverIdSearchTerm.toLowerCase().trim());
 
-    const query = reservationNumber.toLowerCase().trim();
-    const rideId = voucher.rideId?.toLowerCase() || "";
-
-    // Search in reservation number (rideId)
-    return rideId.includes(query);
+    // Both filters must match (AND logic)
+    return reservationMatch && driverIdMatch;
   });
 
   // Pagination calculations based on filtered vouchers
@@ -270,120 +270,311 @@ const VoucherList = () => {
           </div>
         )}
 
-        {/* Search and Filter Section */}
-        {(!loading && !error) && (
+        {/* Search and Filter Section - Always visible when not loading */}
+        {!loading && (
           <div className="filter-container">
-            {/* Reservation Number Search */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label
+            {/* Collapsible Header */}
+            <div
+              className="filter-header"
+              onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                cursor: "pointer",
+                borderBottom: isFiltersExpanded ? "1px solid #e0e0e0" : "none",
+                marginBottom: isFiltersExpanded ? "15px" : "0",
+              }}
+            >
+              <h3
                 style={{
-                  fontSize: "0.9rem",
-                  fontWeight: "500",
+                  margin: 0,
+                  fontSize: "1.1rem",
+                  fontWeight: "600",
                   color: "#333",
-                  marginBottom: "5px",
                 }}
               >
-                Search by Reservation Number
-              </label>
-              <input
-                type="text"
-                value={reservationNumber}
-                onChange={(e) => setReservationNumber(e.target.value)}
-                placeholder="Enter Reservation Number..."
-                className="filter-input"
-                style={{
-                  padding: "10px 12px",
-                  fontSize: "1rem",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  backgroundColor: "#fff",
-                  boxSizing: "border-box",
-                  width: "100%",
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch();
-                  }
-                }}
-              />
-            </div>
-
-            {/* Date Range Filters */}
-            <div className="filter-date-grid">
-              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                <label
+                Filters
+              </h3>
+              <div className="filter-toggle-icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                   style={{
-                    fontSize: "0.9rem",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "5px",
+                    transform: isFiltersExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.3s ease",
                   }}
                 >
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="filter-input"
-                  style={{
-                    padding: "10px 12px",
-                    fontSize: "1rem",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    backgroundColor: "#fff",
-                    boxSizing: "border-box",
-                    width: "100%",
-                  }}
-                />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                <label
-                  style={{
-                    fontSize: "0.9rem",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "5px",
-                  }}
-                >
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => {
-                    const selectedDate = e.target.value;
-                    const today = getTodayDateString();
-                    // Prevent selecting future dates
-                    if (selectedDate <= today) {
-                      setEndDate(selectedDate);
-                    }
-                  }}
-                  max={getTodayDateString()}
-                  className="filter-input"
-                  style={{
-                    padding: "10px 12px",
-                    fontSize: "1rem",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    backgroundColor: "#fff",
-                    boxSizing: "border-box",
-                    width: "100%",
-                  }}
-                />
+                  <path
+                    d="M7 10l5 5 5-5"
+                    stroke="#666"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </div>
             </div>
 
-            {/* Search Button */}
-            <div className="filter-search-button-container">
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                className="filter-search-button"
-              >
-                {loading ? "Searching..." : "Search"}
-              </button>
-            </div>
+            {/* Collapsible Content */}
+            {isFiltersExpanded && (
+              <div className="filter-content">
+                {/* Reservation Number and Driver ID Search - Desktop: one row, Mobile: stacked */}
+                <div className="filter-search-row">
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <label
+                      style={{
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "5px",
+                      }}
+                    >
+                      Search by Reservation Number
+                    </label>
+                    <input
+                      type="text"
+                      value={reservationNumber}
+                      onChange={(e) => setReservationNumber(e.target.value)}
+                      placeholder="Enter Reservation Number..."
+                      className="filter-input"
+                      style={{
+                        padding: "10px 12px",
+                        fontSize: "1rem",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        backgroundColor: "#fff",
+                        boxSizing: "border-box",
+                        width: "100%",
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          handleSearch();
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <label
+                      style={{
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "5px",
+                      }}
+                    >
+                      Search by Driver ID
+                    </label>
+                    <input
+                      type="text"
+                      value={driverId}
+                      onChange={(e) => setDriverId(e.target.value)}
+                      placeholder="Enter Driver ID..."
+                      className="filter-input"
+                      style={{
+                        padding: "10px 12px",
+                        fontSize: "1rem",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        backgroundColor: "#fff",
+                        boxSizing: "border-box",
+                        width: "100%",
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          handleSearch();
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Date Range Filters and Search Button - Desktop: one line, Mobile: stacked */}
+                <div className="filter-date-search-row">
+                  <div className="filter-date-grid">
+                    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                      <label
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: "500",
+                          color: "#333",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        Start Date
+                      </label>
+                      <div className="date-input-wrapper">
+                        <input
+                          type="date"
+                          id="start-date-input"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="filter-input date-input"
+                          style={{
+                            padding: "10px 40px 10px 12px",
+                            fontSize: "1rem",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            backgroundColor: "#fff",
+                            boxSizing: "border-box",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        />
+                        <div 
+                          className="calendar-icon"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const input = document.getElementById('start-date-input') as HTMLInputElement;
+                            if (input) {
+                              input.showPicker?.() || input.click();
+                            }
+                          }}
+                        >
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M16 2V6"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M8 2V6"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M3 10H21"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                      <label
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: "500",
+                          color: "#333",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        End Date
+                      </label>
+                      <div className="date-input-wrapper">
+                        <input
+                          type="date"
+                          id="end-date-input"
+                          value={endDate}
+                          onChange={(e) => {
+                            const selectedDate = e.target.value;
+                            const today = getTodayDateString();
+                            // Prevent selecting future dates
+                            if (selectedDate <= today) {
+                              setEndDate(selectedDate);
+                            }
+                          }}
+                          max={getTodayDateString()}
+                          className="filter-input date-input"
+                          style={{
+                            padding: "10px 40px 10px 12px",
+                            fontSize: "1rem",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            backgroundColor: "#fff",
+                            boxSizing: "border-box",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        />
+                        <div 
+                          className="calendar-icon"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const input = document.getElementById('end-date-input') as HTMLInputElement;
+                            if (input) {
+                              input.showPicker?.() || input.click();
+                            }
+                          }}
+                        >
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M16 2V6"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M8 2V6"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M3 10H21"
+                              stroke="#666"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Search Button */}
+                  <div className="filter-search-button-container">
+                    <button
+                      onClick={handleSearch}
+                      disabled={loading}
+                      className="filter-search-button"
+                    >
+                      {loading ? "Searching..." : "Search"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -452,7 +643,7 @@ const VoucherList = () => {
         )} */}
 
         {/* Show search results count */}
-        {appliedSearchTerm && filteredVouchers.length > 0 && (
+        {(appliedSearchTerm || appliedDriverIdSearchTerm) && filteredVouchers.length > 0 && (
           <div
             style={{
               marginBottom: "15px",
@@ -460,11 +651,21 @@ const VoucherList = () => {
               fontSize: "0.95rem",
             }}
           >
-            Showing {filteredVouchers.length} of {vouchers.length} vouchers matching{" "}
-            <strong style={{ color: "#1976d2", fontWeight: "600" }}>"{appliedSearchTerm}"</strong>
+            Showing {filteredVouchers.length} of {vouchers.length} vouchers
+            {appliedSearchTerm && (
+              <> matching Reservation Number{" "}
+                <strong style={{ color: "#1976d2", fontWeight: "600" }}>"{appliedSearchTerm}"</strong>
+              </>
+            )}
+            {appliedSearchTerm && appliedDriverIdSearchTerm && " and"}
+            {appliedDriverIdSearchTerm && (
+              <> Driver ID{" "}
+                <strong style={{ color: "#1976d2", fontWeight: "600" }}>"{appliedDriverIdSearchTerm}"</strong>
+              </>
+            )}
           </div>
         )}
-        {appliedSearchTerm && filteredVouchers.length === 0 && vouchers.length > 0 && (
+        {(appliedSearchTerm || appliedDriverIdSearchTerm) && filteredVouchers.length === 0 && vouchers.length > 0 && (
           <div
             style={{
               marginBottom: "15px",
@@ -472,30 +673,53 @@ const VoucherList = () => {
               fontSize: "0.95rem",
             }}
           >
-            No vouchers found matching{" "}
-            <strong style={{ color: "#d32f2f", fontWeight: "600" }}>"{appliedSearchTerm}"</strong>
+            No vouchers found
+            {appliedSearchTerm && (
+              <> matching Reservation Number{" "}
+                <strong style={{ color: "#d32f2f", fontWeight: "600" }}>"{appliedSearchTerm}"</strong>
+              </>
+            )}
+            {appliedSearchTerm && appliedDriverIdSearchTerm && " and"}
+            {appliedDriverIdSearchTerm && (
+              <> Driver ID{" "}
+                <strong style={{ color: "#d32f2f", fontWeight: "600" }}>"{appliedDriverIdSearchTerm}"</strong>
+              </>
+            )}
             {" "}out of {vouchers.length} vouchers
           </div>
         )}
 
-        {/* Table - Always show when not loading and no error */}
-        {!loading && !error && (
+        {/* Table - Always show when not loading */}
+        {!loading && (
           <div className="table-container">
             <table className="antd-style-table">
               <thead>
                 <tr>
-                  {/* Driver ID column - Commented out for now, will be used when driver ID is available from backend */}
-                  {/* <th>Driver ID</th> */}
+                  <th style={{ width: "200px" }}>Driver ID</th>
                   <th style={{ width: "200px" }}>Reservation ID</th>
                   <th>Voucher Image</th>
                   <th style={{ textAlign: "center" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredVouchers.length === 0 ? (
+                {error ? (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={4}
+                      style={{
+                        textAlign: "center",
+                        padding: "40px 20px",
+                        color: "#d32f2f",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      {error}
+                    </td>
+                  </tr>
+                ) : vouchers.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
                       style={{
                         textAlign: "center",
                         padding: "40px 20px",
@@ -503,14 +727,36 @@ const VoucherList = () => {
                         fontSize: "1rem",
                       }}
                     >
-                      No Data Found
+                      No vouchers found for the selected date range.
+                    </td>
+                  </tr>
+                ) : filteredVouchers.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      style={{
+                        textAlign: "center",
+                        padding: "40px 20px",
+                        color: "#666",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      No vouchers match your search criteria.
                     </td>
                   </tr>
                 ) : (
                   currentVouchers.map((voucher, index) => (
                     <tr key={`${voucher.driverId}-${voucher.rideId}-${index}`}>
-                      {/* Driver ID cell - Commented out for now, will be used when driver ID is available from backend */}
-                      {/* <td>{voucher.driverId}</td> */}
+                      <td
+                        style={{
+                          width: "200px",
+                          wordWrap: "break-word",
+                          wordBreak: "break-all",
+                          whiteSpace: "normal",
+                        }}
+                      >
+                        {voucher.driverId}
+                      </td>
                       <td
                         style={{
                           width: "200px",
@@ -561,7 +807,7 @@ const VoucherList = () => {
         )}
 
         {/* Pagination - Show only when there are filtered vouchers */}
-        {!loading && !error && filteredVouchers.length > 0 && (
+        {!loading && !error && filteredVouchers.length > 0 && vouchers.length > 0 && (
           <div className="antd-pagination">
               <div className="pagination-info">
                 Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of{" "}

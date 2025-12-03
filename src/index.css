@@ -23,14 +23,52 @@
   gap: 15px;
 }
 
-.filter-date-grid {
+.filter-header {
+  user-select: none;
+  padding: 12px 15px;
+  transition: background-color 0.2s ease;
+}
+
+.filter-header:hover {
+  opacity: 0.9;
+}
+
+.filter-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.filter-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.filter-search-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
 }
 
+.filter-date-search-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+}
+
+.filter-date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  flex: 1;
+}
+
 .filter-search-button-container {
   display: flex;
+  align-items: flex-end;
   justify-content: flex-end;
 }
 
@@ -45,6 +83,8 @@
   cursor: pointer;
   transition: background-color 0.2s;
   width: auto;
+  height: fit-content;
+  white-space: nowrap;
 }
 
 .filter-search-button:hover:not(:disabled) {
@@ -56,10 +96,42 @@
   cursor: not-allowed;
 }
 
+/* Desktop: hide custom calendar icon so native browser icon is used */
+.calendar-icon {
+  display: none;
+}
+
 /* Mobile responsive styles */
 @media (max-width: 768px) {
   .filter-container {
     padding: 15px;
+    gap: 12px;
+  }
+
+  .filter-header {
+    padding: 14px 15px;
+    min-height: 48px; /* Better touch target for mobile */
+  }
+
+  .filter-toggle-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .filter-content {
+    gap: 12px;
+  }
+
+  .filter-search-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filter-date-search-row {
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
   }
 
@@ -77,10 +149,87 @@
     padding: 12px 20px;
   }
 
-  .filter-input {
-    font-size: 16px; /* Prevents zoom on iOS */
-    min-height: 44px; /* Better touch target */
-  }
+.filter-input {
+  font-size: 16px; /* Prevents zoom on iOS */
+  min-height: 44px; /* Better touch target */
+}
+
+/* Date Input Wrapper with Calendar Icon */
+.date-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: block;
+}
+
+.date-input-wrapper .date-input {
+  padding-right: 40px !important;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Hide native calendar picker indicator completely */
+.date-input-wrapper .date-input::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  right: -9999px !important;
+}
+
+.date-input-wrapper .date-input::-webkit-inner-spin-button,
+.date-input-wrapper .date-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
+}
+
+.date-input-wrapper .date-input[type="date"]::-webkit-input-placeholder {
+  visibility: hidden !important;
+}
+
+/* Firefox - hide native calendar icon */
+.date-input-wrapper .date-input[type="date"] {
+  -moz-appearance: textfield;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 10;
+  padding: 0;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.calendar-icon:hover {
+  background-color: #f0f0f0;
+}
+
+.calendar-icon:active {
+  background-color: #e0e0e0;
+}
+
+.calendar-icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
 
   /* Reduce container margins on mobile */
   .ml-10.mr-10 {

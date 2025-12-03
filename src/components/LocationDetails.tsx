@@ -38,12 +38,14 @@ interface LocationDetailsInputProps {
   pickupAddress: string;
   onDropOfLocationChange: (value: string) => void;
   onCityStateChange: (value: string) => void;
-  onTollsChange: (value: string) => void;
+  // onTollsChange: (value: string) => void; // Commented out - requires deeper implementation on Elite side
+  onTollsChange?: (value: string) => void; // Made optional
   onPassengerNameChange?: (value: string) => void;
   prefilledDropOfLocation: string;
   cityState: string;
   dropOfLocation: string;
-  tolls: string;
+  // tolls: string; // Commented out - requires deeper implementation on Elite side
+  tolls?: string; // Made optional
   passengerName?: string;
   passengerNameValue?: string;
 }
@@ -52,12 +54,12 @@ const LocationDetailsInput = ({
   pickupAddress,
   onDropOfLocationChange,
   onCityStateChange,
-  onTollsChange,
+  onTollsChange, // Optional now
   onPassengerNameChange,
   prefilledDropOfLocation,
   cityState,
   dropOfLocation,
-  tolls,
+  tolls, // Optional now
   passengerName,
   passengerNameValue,
 }: LocationDetailsInputProps) => {
@@ -120,7 +122,8 @@ const LocationDetailsInput = ({
             onChange={(e) => onCityStateChange(e.target.value)}
           />
         </div>
-        <p
+        {/* Tolls field commented out - requires deeper implementation on Elite side */}
+        {/* <p
           className="secoundaru-text"
           style={{ marginTop: "8px", marginBottom: "4px" }}
         >
@@ -131,7 +134,7 @@ const LocationDetailsInput = ({
           valueTrue={false}
           value={tolls}
           onChange={(e) => onTollsChange(e.target.value)}
-        />
+        /> */}
       </div>
     </div>
   );

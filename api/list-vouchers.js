@@ -43,10 +43,10 @@ export default async function handler(req, res) {
       prefix: "uploads/",
     });
 
-    // Parse voucher filenames to extract reservation number and date
-    // New format: {ReservationNumber}-{dateString}-voucher
+    // Parse voucher filenames to extract driver ID, reservation number and date
+    // New format: {DriverId}-{ReservationNumber}-{dateString}-voucher
     // dateString format: DD-MM-YYYY (e.g., "01-12-2025")
-    // Example: 05C96053DBE54DC7947760350493D674-01-12-2025-voucher
+    // Example: DRIVER123-05C96053DBE54DC7947760350493D674-01-12-2025-voucher
     const parseVoucherFileName = (fileName) => {
       // Remove "uploads/" prefix if present and get just the filename
       const name = fileName.split("/").pop() || fileName;
@@ -57,7 +57,50 @@ export default async function handler(req, res) {
       // Split by "-" to get parts
       const parts = nameWithoutExt.split("-");
       
-      // New format: ReservationNumber-DD-MM-YYYY-voucher
+      // New format: DriverId-ReservationNumber-DD-MM-YYYY-voucher
+      // Format is: [driverId, reservationNumber, DD, MM, YYYY, voucher] (minimum 6 parts)
+      if (parts.length >= 6 && parts[parts.length - 1] === "voucher") {
+        // Check if the last 4 parts before "voucher" match DD-MM-YYYY format
+        const year = parts[parts.length - 2]; // YYYY (4 digits)
+        const month = parts[parts.length - 3]; // MM (2 digits)
+        const day = parts[parts.length - 4]; // DD (2 digits)
+        
+        // Validate date format: year is 4 digits, month and day are 2 digits
+        if (/^\d{4}$/.test(year) && /^\d{2}$/.test(month) && /^\d{2}$/.test(day)) {
+          // Extract date parts: [DD, MM, YYYY]
+          const dateString = `${day}-${month}-${year}`; // DD-MM-YYYY format
+          
+          // Extract reservation number (everything between driverId and date)
+          // Parts structure: [driverId, ...reservationNumber parts..., DD, MM, YYYY, voucher]
+          const reservationNumber = parts.slice(1, -4).join("-");
+          const driverId = parts[0]; // First part is driver ID
+          
+          // Convert DD-MM-YYYY to YYYY-MM-DD for internal use
+          try {
+            const dateObj = new Date(`${year}-${month}-${day}`);
+            const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
+            return {
+              driverId: driverId,
+              reservationNumber: reservationNumber,
+              rideId: reservationNumber,
+              startDate: date,
+              endDate: date,
+            };
+          } catch (e) {
+            // If date parsing fails, just return the date string
+            return {
+              driverId: driverId,
+              reservationNumber: reservationNumber,
+              rideId: reservationNumber,
+              startDate: dateString,
+              endDate: dateString,
+            };
+          }
+        }
+      }
+      
+      // Fallback: Try to parse old format without driver ID for backward compatibility
+      // Old format: ReservationNumber-DD-MM-YYYY-voucher
       // Format is: [reservationNumber, DD, MM, YYYY, voucher] (minimum 5 parts)
       if (parts.length >= 5 && parts[parts.length - 1] === "voucher") {
         // Check if the last 4 parts before "voucher" match DD-MM-YYYY format
@@ -78,6 +121,7 @@ export default async function handler(req, res) {
             const dateObj = new Date(`${year}-${month}-${day}`);
             const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
             return {
+              driverId: "unknown", // No driver ID in old format
               reservationNumber: reservationNumber,
               rideId: reservationNumber,
               startDate: date,
@@ -86,6 +130,7 @@ export default async function handler(req, res) {
           } catch (e) {
             // If date parsing fails, just return the date string
             return {
+              driverId: "unknown", // No driver ID in old format
               reservationNumber: reservationNumber,
               rideId: reservationNumber,
               startDate: dateString,
@@ -165,7 +210,7 @@ export default async function handler(req, res) {
           id: blob.pathname,
           url: blob.url,
           fileName: fileName,
-          driverId: "unknown", // Driver ID no longer in filename
+          driverId: parsed?.driverId || "unknown", // Extract driver ID from filename
           rideId: parsed?.rideId || parsed?.reservationNumber || "unknown",
           reservationNumber: parsed?.reservationNumber || "unknown",
           date: parsed?.date || null,

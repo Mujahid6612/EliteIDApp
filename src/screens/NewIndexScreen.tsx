@@ -14,7 +14,7 @@ import Unload from "./Unload";
 import CompleteJob from "./CompleteJob";
 import RideRejected from "./RideRejected";
 import LocationRequest from "./LocationRequest";
-import LocationPermissionInstructions from "./LocationPermissionInstructions";
+// import LocationPermissionInstructions from "./LocationPermissionInstructions"; // Commented out - instructions screen removed
 import IndexScreenLoader from "../components/IndexScreenLoader";
 import Unauthorized from "./Unauthorized";
 import type { JobApiResponse } from "../types";
@@ -31,7 +31,6 @@ const NewIndexScreen = () => {
   const [locationPermission, setLocationPermission] = useState<
     "granted" | "denied" | "prompt" | null
   >(null);
-  const [hasSeenInstructions, setHasSeenInstructions] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [authResponse, setAuthResponse] = useState<JobApiResponse | null>(null);
   const [isLogRestricting, setIsLogRestricting] = useState(false);
@@ -252,17 +251,9 @@ const NewIndexScreen = () => {
     );
   }
 
-  // Show instructions screen first when permission is "prompt" and user hasn't seen it
-  if (locationPermission === "prompt" && !hasSeenInstructions) {
-    return (
-      <LocationPermissionInstructions
-        onContinue={() => setHasSeenInstructions(true)}
-      />
-    );
-  }
-
-  // Show LocationRequest after user has seen instructions
-  if (locationPermission === "prompt" && hasSeenInstructions) {
+  // Skip instructions screen - go directly to location permission request
+  // Show LocationRequest directly when permission is "prompt"
+  if (locationPermission === "prompt") {
     return (
       <LocationRequest
         permissionBlockedRes={false}

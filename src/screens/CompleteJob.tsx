@@ -95,13 +95,13 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     }
   };
 
-  const uploadVoucherFile = async (_jobIdToken: string, actualJobId: string) => {
+  const uploadVoucherFile = async (_jobIdToken: string, actualJobId: string, driverId?: string) => {
     if (!voucherFile) {
       throw new Error("Voucher file is required.");
     }
 
-    // Generate file name with format: {ReservationNumber}-{dateString}-voucher.{extension}
-    const baseFileName = voucherFileNameGenerator(actualJobId);
+    // Generate file name with format: {DriverId}-{ReservationNumber}-{dateString}-voucher.{extension}
+    const baseFileName = voucherFileNameGenerator(actualJobId, driverId);
     
     // Get file extension from the original file
     const fileExtension = voucherFile.name.split('.').pop() || 'png';
@@ -238,8 +238,8 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
       return;
     }
 
-    // Extract actual job ID (reservation number) from job data
-    const { jobIdFromRes } = getJobDetails(jobData);
+    // Extract actual job ID (reservation number) and driver ID from job data
+    const { jobIdFromRes, driverId } = getJobDetails(jobData);
     const actualJobId = jobIdFromRes || jobId; // Fallback to token if reservation number not available
 
     setUploadError(null);
@@ -248,7 +248,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     try {
       // Only upload voucher if it exists (skip logic allows proceeding without it)
       if (voucherFile) {
-        await uploadVoucherFile(jobId, String(actualJobId));
+        await uploadVoucherFile(jobId, String(actualJobId), driverId ? String(driverId) : undefined);
       }
       
       const res = await authenticate({
@@ -258,7 +258,8 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
         dropOfLocationSer: dropOfLocation,
         cityStateSer: cityState,
         passegerNameInputSer: passegerNameInput,
-        tollsSer: tolls,
+        // tollsSer: tolls, // Commented out - requires deeper implementation on Elite side
+        tollsSer: "", // Send empty string instead
       });
       dispatch(setJobData({ jobId, data: res }));
       const currentViwe = res.JData?.[0]?.[0];
@@ -313,13 +314,13 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
       <LocationDetailsInput
         onDropOfLocationChange={setDropOfLocation}
         onCityStateChange={setCityState}
-        onTollsChange={setTolls}
+        // onTollsChange={setTolls} // Commented out - requires deeper implementation on Elite side
         onPassengerNameChange={setPassengerNameInput}
         pickupAddress={String(pickupAddress)}
         prefilledDropOfLocation={dropOfLocation}
         cityState={cityState}
         dropOfLocation={dropOfLocation}
-        tolls={tolls}
+        // tolls={tolls} // Commented out - requires deeper implementation on Elite side
         passengerName={String(passengerName)}
         passengerNameValue={passegerNameInput}
       />

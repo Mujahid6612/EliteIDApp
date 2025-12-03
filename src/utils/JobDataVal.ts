@@ -44,6 +44,7 @@ export const getJobDetails = (data: any) => {
     dropoffAddress: getValueFromData(data, "p_CT_DO_FULLADDRESS"),
     passengerName: getValueFromData(data, "p_CT_PASSENGER_NAME"),
     passengerPhone: getValueFromData(data, "p_CT_PASSENGER_PHONE_NUM"),
+    driverId: getValueFromData(data, "p_CT_DRIVER_NUM"), // Driver ID from backend
     passengerNameHeading: getButtonLabelFromData(data, "p_CT_PASSENGER_NAME"),
     passengerPhoneHeading: getButtonLabelFromData(data, "p_CT_PASSENGER_PHONE_NUM"),
 
