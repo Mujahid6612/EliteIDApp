@@ -54,12 +54,12 @@ const LocationDetailsInput = ({
   pickupAddress,
   onDropOfLocationChange,
   onCityStateChange,
-  onTollsChange, // Optional now
+  onTollsChange: _onTollsChange, // Optional now - unused since Tolls field is commented out
   onPassengerNameChange,
   prefilledDropOfLocation,
   cityState,
   dropOfLocation,
-  tolls, // Optional now
+  tolls: _tolls, // Optional now - unused since Tolls field is commented out
   passengerName,
   passengerNameValue,
 }: LocationDetailsInputProps) => {

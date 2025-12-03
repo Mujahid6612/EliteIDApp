@@ -431,7 +431,11 @@ const VoucherList = () => {
                             e.preventDefault();
                             const input = document.getElementById('start-date-input') as HTMLInputElement;
                             if (input) {
-                              input.showPicker?.() || input.click();
+                              if (input.showPicker) {
+                                input.showPicker();
+                              } else {
+                                input.click();
+                              }
                             }
                           }}
                         >
@@ -517,7 +521,11 @@ const VoucherList = () => {
                             e.preventDefault();
                             const input = document.getElementById('end-date-input') as HTMLInputElement;
                             if (input) {
-                              input.showPicker?.() || input.click();
+                              if (input.showPicker) {
+                                input.showPicker();
+                              } else {
+                                input.click();
+                              }
                             }
                           }}
                         >

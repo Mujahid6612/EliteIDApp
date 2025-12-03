@@ -39,7 +39,7 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
   // State for input fields
   const [dropOfLocation, setDropOfLocation] = useState("");
   const [cityState, setCityState] = useState("");
-  const [tolls, setTolls] = useState("");
+  // const [tolls, setTolls] = useState(""); // Commented out - Tolls field is disabled
   const [passegerNameInput, setPassengerNameInput] = useState("");
   const [voucherFile, setVoucherFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
