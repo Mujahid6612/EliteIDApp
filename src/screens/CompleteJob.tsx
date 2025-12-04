@@ -2,9 +2,7 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import HeaderLayout from "../components/HeaderLayout";
 import JobdetailsHeader from "../components/JobdetailsHeader";
 import FormatDateCom from "../components/FormatDateCom";
-import {
-  LocationDetailsInput,
-} from "../components/LocationDetails";
+import { LocationDetailsInput } from "../components/LocationDetails";
 import Popup from "../components/Popup";
 import { useParams } from "react-router-dom";
 //import UploadImage from "../components/UploadImage";
@@ -95,16 +93,20 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     }
   };
 
-  const uploadVoucherFile = async (_jobIdToken: string, actualJobId: string, driverId?: string) => {
+  const uploadVoucherFile = async (
+    _jobIdToken: string,
+    actualJobId: string,
+    driverId?: string
+  ) => {
     if (!voucherFile) {
       throw new Error("Voucher file is required.");
     }
 
     // Generate file name with format: {DriverId}-{ReservationNumber}-{dateString}-voucher.{extension}
     const baseFileName = voucherFileNameGenerator(actualJobId, driverId);
-    
+
     // Get file extension from the original file
-    const fileExtension = voucherFile.name.split('.').pop() || 'png';
+    const fileExtension = voucherFile.name.split(".").pop() || "png";
     const fileName = `${baseFileName}.${fileExtension}`;
 
     const formData = new FormData();
@@ -143,7 +145,9 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           if (mapsApiKey) {
             try {
               const response = await fetch(
-                addTimestampParam(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${mapsApiKey}`)
+                addTimestampParam(
+                  `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${mapsApiKey}`
+                )
               );
               const data = await response.json();
 
@@ -161,7 +165,9 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           // Fallback: Use OpenStreetMap Nominatim API (free, no API key needed)
           try {
             const response = await fetch(
-              addTimestampParam(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`),
+              addTimestampParam(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+              ),
               {
                 headers: {
                   "User-Agent": "EliteIDApp", // Required by Nominatim
@@ -195,11 +201,10 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     fetchCurrentLocation();
   }, []); // Runs only once on mount
 
-  const handleAllowLocation = async ({
-    dropOfLocation,
-    cityState,
-    passegerNameInput,
-  }: PropsforLocation, skipValidation = false) => {
+  const handleAllowLocation = async (
+    { dropOfLocation, cityState, passegerNameInput }: PropsforLocation,
+    skipValidation = false
+  ) => {
     if (isSubmitting) {
       return;
     }
@@ -248,9 +253,13 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
     try {
       // Only upload voucher if it exists (skip logic allows proceeding without it)
       if (voucherFile) {
-        await uploadVoucherFile(jobId, String(actualJobId), driverId ? String(driverId) : undefined);
+        await uploadVoucherFile(
+          jobId,
+          String(actualJobId),
+          driverId ? String(driverId) : undefined
+        );
       }
-      
+
       const res = await authenticate({
         token: jobId,
         actionType: "SAVE",
@@ -325,7 +334,9 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
         passengerNameValue={passegerNameInput}
       />
       <div className="ml-10 mt-4 location-container">
-        <p className="secoundaru-text" style={{ marginBottom: "4px" }}>Attach Voucher Picture</p>
+        <p className="secoundaru-text" style={{ marginBottom: "4px" }}>
+          Attach Voucher Picture
+        </p>
         <div
           className="d-flex-sb mr-10"
           style={{ gap: "1rem", alignItems: "center" }}
@@ -340,8 +351,19 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
                 flexWrap: "wrap",
               }}
             >
-              <p className="secoundaru-text" style={{ marginBottom: "0px", width: "100%", fontWeight: "normal", lineHeight: "1.2" }}>
-                Please write the toll amount on the voucher before taking the picture.
+              <p
+                className="secoundaru-text"
+                style={{
+                  marginBottom: "0px",
+                  width: "100%",
+                  fontWeight: "normal",
+                  lineHeight: "1.2",
+                  fontSize: "1.1rem",
+                  color: "red",
+                }}
+              >
+                Please write the toll amount on the voucher before taking the
+                picture.
               </p>
               <button
                 type="button"
@@ -471,12 +493,15 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
           secondButtonText="Skip"
           functionpassed={() => setShowValidationPopup(false)}
           functionSecondButton={() => {
-             setShowValidationPopup(false);
-             handleAllowLocation({
+            setShowValidationPopup(false);
+            handleAllowLocation(
+              {
                 dropOfLocation,
                 cityState,
                 passegerNameInput,
-             }, true); // Pass skip flag
+              },
+              true
+            ); // Pass skip flag
           }}
           popupButtonRedClass="secondaryPopup"
         />
