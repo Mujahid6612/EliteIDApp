@@ -340,6 +340,9 @@ const CompleteJob = ({ islogrestricting }: { islogrestricting: boolean }) => {
                 flexWrap: "wrap",
               }}
             >
+              <p className="secoundaru-text" style={{ marginBottom: "0px", width: "100%", fontWeight: "normal", lineHeight: "1.2" }}>
+                Please write the toll amount on the voucher before taking the picture.
+              </p>
               <button
                 type="button"
                 className="button"
