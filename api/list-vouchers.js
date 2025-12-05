@@ -78,7 +78,16 @@ export default async function handler(req, res) {
           // Convert DD-MM-YYYY to YYYY-MM-DD for internal use
           try {
             const dateObj = new Date(`${year}-${month}-${day}`);
+            // Validate the date is valid (not NaN)
+            if (isNaN(dateObj.getTime())) {
+              // Invalid date, try alternative parsing
+              throw new Error("Invalid date");
+            }
             const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
+            // Double-check the date format is correct
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+              throw new Error("Invalid date format");
+            }
             return {
               driverId: driverId,
               reservationNumber: reservationNumber,
@@ -87,13 +96,14 @@ export default async function handler(req, res) {
               endDate: date,
             };
           } catch (e) {
-            // If date parsing fails, just return the date string
+            // If date parsing fails, construct YYYY-MM-DD manually
+            const date = `${year}-${month}-${day}`;
             return {
               driverId: driverId,
               reservationNumber: reservationNumber,
               rideId: reservationNumber,
-              startDate: dateString,
-              endDate: dateString,
+              startDate: date,
+              endDate: date,
             };
           }
         }
@@ -119,7 +129,15 @@ export default async function handler(req, res) {
           // Convert DD-MM-YYYY to YYYY-MM-DD for internal use
           try {
             const dateObj = new Date(`${year}-${month}-${day}`);
+            // Validate the date is valid (not NaN)
+            if (isNaN(dateObj.getTime())) {
+              throw new Error("Invalid date");
+            }
             const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
+            // Double-check the date format is correct
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+              throw new Error("Invalid date format");
+            }
             return {
               driverId: "unknown", // No driver ID in old format
               reservationNumber: reservationNumber,
@@ -128,13 +146,14 @@ export default async function handler(req, res) {
               endDate: date,
             };
           } catch (e) {
-            // If date parsing fails, just return the date string
+            // If date parsing fails, construct YYYY-MM-DD manually
+            const date = `${year}-${month}-${day}`;
             return {
               driverId: "unknown", // No driver ID in old format
               reservationNumber: reservationNumber,
               rideId: reservationNumber,
-              startDate: dateString,
-              endDate: dateString,
+              startDate: date,
+              endDate: date,
             };
           }
         }
@@ -158,6 +177,7 @@ export default async function handler(req, res) {
         const reservationNumber = parts.slice(0, -7).join("-");
         
         return {
+          driverId: "unknown", // No driver ID in old format
           reservationNumber: reservationNumber,
           rideId: reservationNumber,
           startDate: startDate,
@@ -173,6 +193,7 @@ export default async function handler(req, res) {
         const reservationNumber = parts.slice(0, -4).join("-");
         
         return {
+          driverId: "unknown", // No driver ID in old format
           reservationNumber: reservationNumber,
           rideId: reservationNumber,
           startDate: date,
@@ -182,10 +203,13 @@ export default async function handler(req, res) {
       
       // Fallback: Try to parse very old format for backward compatibility
       // Very old format: {driverId}-{rideId}-voucher
+      // Example: 123-05C96053DBE54DC7947760350493D674-voucher
       if (parts.length >= 3 && parts[parts.length - 1] === "voucher") {
-        const rideId = parts.slice(1, -1).join("-");
+        const driverId = parts[0]; // First part is driverId
+        const rideId = parts.slice(1, -1).join("-"); // Everything between driverId and "voucher" is rideId
         return {
-          reservationNumber: parts[0],
+          driverId: driverId, // Extract driverId from first part
+          reservationNumber: rideId, // rideId is the reservation number
           rideId: rideId,
           startDate: null,
           endDate: null,
@@ -196,27 +220,71 @@ export default async function handler(req, res) {
     };
 
     // Filter vouchers by date range and parse the filename
+    // IMPORTANT: Filter by the date in the filename (voucher creation date), not upload date
     const filteredBlobs = blobs
-      .filter((blob) => {
-        const uploadDate = new Date(blob.uploadedAt);
-        // Check if upload date is within the date range
-        return uploadDate >= startDateObj && uploadDate <= endDateObj;
-      })
       .map((blob) => {
         const fileName = blob.pathname.split("/").pop() || "";
         const parsed = parseVoucherFileName(fileName);
+        
+        // Extract driver ID - prioritize parsed value, but also try to extract from filename if parsing failed
+        let extractedDriverId = parsed?.driverId || "unknown";
+        
+        // If parsing failed but filename matches new format pattern, try to extract driverId manually
+        if (!parsed && fileName.includes("-voucher")) {
+          const nameWithoutExt = fileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, "");
+          const parts = nameWithoutExt.split("-");
+          // New format should have at least 6 parts: [driverId, reservationNumber, DD, MM, YYYY, voucher]
+          if (parts.length >= 6 && parts[parts.length - 1] === "voucher") {
+            // Check if last 4 parts before "voucher" look like a date
+            const year = parts[parts.length - 2];
+            const month = parts[parts.length - 3];
+            const day = parts[parts.length - 4];
+            if (/^\d{4}$/.test(year) && /^\d{2}$/.test(month) && /^\d{2}$/.test(day)) {
+              extractedDriverId = parts[0] || "unknown";
+            }
+          }
+        }
         
         return {
           id: blob.pathname,
           url: blob.url,
           fileName: fileName,
-          driverId: parsed?.driverId || "unknown", // Extract driver ID from filename
+          driverId: extractedDriverId, // Always include driverId, even if parsing failed
           rideId: parsed?.rideId || parsed?.reservationNumber || "unknown",
           reservationNumber: parsed?.reservationNumber || "unknown",
-          date: parsed?.date || null,
+          date: parsed?.startDate || parsed?.endDate || null,
+          parsedDate: parsed?.startDate || parsed?.endDate || null, // Date from filename
           uploadedAt: blob.uploadedAt,
           size: blob.size,
         };
+      })
+      .filter((voucher) => {
+        // If we have a parsed date from filename, use it for filtering
+        if (voucher.parsedDate) {
+          try {
+            const voucherDate = new Date(voucher.parsedDate);
+            // Validate the date is valid
+            if (isNaN(voucherDate.getTime())) {
+              throw new Error("Invalid date");
+            }
+            voucherDate.setHours(0, 0, 0, 0); // Start of day for comparison
+            const startDate = new Date(startDateObj);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(endDateObj);
+            endDate.setHours(23, 59, 59, 999);
+            
+            // Check if voucher date is within the date range
+            return voucherDate >= startDate && voucherDate <= endDate;
+          } catch (e) {
+            // If date parsing fails, fall back to upload date
+            const uploadDate = new Date(voucher.uploadedAt);
+            return uploadDate >= startDateObj && uploadDate <= endDateObj;
+          }
+        }
+        
+        // If no parsed date (old format or parsing failed), use upload date as fallback
+        const uploadDate = new Date(voucher.uploadedAt);
+        return uploadDate >= startDateObj && uploadDate <= endDateObj;
       });
 
     // Format the response to match AdminVoucher interface
